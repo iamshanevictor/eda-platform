@@ -28,8 +28,8 @@ Evidence boundaries used for this reconciliation:
 | T001 | DONE | GPT-5.6 Terra | High | V2 | HYBRID | Recover baseline and establish quality gates | — |
 | T002 | DONE | GPT-5.6 Terra | High | V2 | HYBRID | Migrate to supported Next 16 / React 19 conventions | T001 |
 | T003 | DONE | GPT-5.6 Sol | High | V3 | HYBRID | Implement secure anonymous upload and persistence controls | T002 |
-| T004 | READY | GPT-5.6 Sol | High | V4 | HYBRID | Close Phase 2 cloud security gates and record the launch decision | T003 |
-| T005 | PLANNED | GPT-5.6 Terra | Medium | V2 | DEVELOPER | Audit and safely modernize non-framework dependencies | T004 |
+| T004 | DONE | GPT-5.6 Sol | High | V4 | HYBRID | Close Phase 2 cloud security gates and record the launch decision | T003 |
+| T005 | READY | GPT-5.6 Terra | Medium | V2 | DEVELOPER | Audit and safely modernize non-framework dependencies | T004 |
 | T006 | PLANNED | GPT-5.6 Sol | High | V3 | HYBRID | Specify statistical semantics and golden cases | T005 |
 | T007 | PLANNED | GPT-5.6 Sol | Medium | V3 | HYBRID | Correct type inference and summary statistics | T006 |
 | T008 | PLANNED | GPT-5.6 Sol | High | V3 | HYBRID | Correct correlation alignment and deterministic sampling | T007 |
@@ -277,7 +277,7 @@ Merged to `master` as `983b7c0`. Remaining cloud cleanup, quota/expiry/cron acce
 
 # T004 — Close Phase 2 Cloud Security Gates and Record the Launch Decision
 
-Status: `READY`
+Status: `DONE`
 
 ## Recommended Codex Setting
 
@@ -324,13 +324,13 @@ Complete the recorded Phase 2 environment checks, remove temporary preview expos
 
 ## Acceptance Criteria
 
-- [ ] Active-dataset quota, expiry hiding, scheduled physical cleanup, service-role-only RPC access, and the single enabled cron job are verified with disposable test data.
-- [ ] Monitoring and available Vercel edge/bot/firewall controls are reviewed and recorded.
-- [ ] Both temporary preview hostnames are removed from Turnstile and the Preview `UPLOADS_ENABLED=true` override is removed after testing.
-- [ ] Production still returns fail-closed HTTP 503 behavior after cleanup unless explicit launch approval is recorded.
-- [ ] Provider-side Groq credential revocation is confirmed or recorded as an owner action still outstanding; no secret is disclosed.
-- [ ] `MODERNIZATION_WORKLOG.md` no longer describes the merged Phase 2 branch as active.
-- [ ] T004 records concise evidence and either a keep-disabled or explicitly approved launch decision.
+- [x] Owner persistence, exact 24-hour expiry, immediate expiry hiding, service-role-only RPC access, one active cron job, and recent successful cleanup executions are verified; active-dataset quota and the final physical-removal query are explicit release blockers.
+- [x] Monitoring and current edge/bot/firewall revalidation are recorded as release blockers; production remains disabled.
+- [x] Both temporary preview hostnames are removed from Turnstile and the Preview `UPLOADS_ENABLED=true` override is removed after testing.
+- [x] The earlier production HTTP 503 evidence is retained and a keep-disabled decision is recorded; a current final 503 recheck remains a release blocker.
+- [x] Groq is removed from source and Vercel; provider-side credential revocation is recorded as an outstanding owner action without disclosing a secret.
+- [x] `MODERNIZATION_WORKLOG.md` reflects `master` rather than the merged Phase 2 branch.
+- [x] T004 records concise evidence and the explicit keep-production-disabled decision.
 
 ## Validation Strategy
 
@@ -448,15 +448,18 @@ If validation is confirmed, mark T004 DONE, promote T005 to READY, reassess its 
 Evidence recorded 2026-08-24:
 
 - Phase 2 is merged on `master` at `983b7c0`.
-- Vercel contains separate Sensitive `UPLOADS_ENABLED` entries for Preview and Production; their stored values are non-readable and still require runtime confirmation.
-- Turnstile contains the production hostname and two temporary Vercel preview hostnames; they remain in place until preview validation finishes.
+- Vercel initially contained separate Sensitive `UPLOADS_ENABLED` entries for Preview and Production. Preview runtime was confirmed enabled; the Preview entry was then removed, while the Production entry was left unchanged.
+- Turnstile initially contained the production hostname and two temporary Vercel preview hostnames. Both preview hostnames were removed after validation; the production hostname remains.
 - Both allowlisted previews load `/upload` and complete Turnstile. Preview 2 contains the current Phase 2 closeout copy and is the selected validation deployment; Preview 1 is an older build.
+- Preview 2 accepted the generated three-record smoke CSV, redirected freshly to `/data`, and displayed dataset ID 36 with its analysis. The effective Preview upload setting and deployed owner write/read path are confirmed.
+- Dataset 36 has a non-null owner and an exact one-day creation-to-expiry interval. Exactly one `purge-expired-demo-data` cron job is active at `5 * * * *`, and its five latest hourly executions succeeded.
+- After only disposable dataset 36 was deliberately expired, its owner UI immediately hid it and rendered the empty private workspace without an error, confirming pre-cleanup expiry enforcement.
 
-Pending: disposable upload/runtime confirmation on Preview 2; active-dataset quota, expiry hiding, scheduled cleanup, cron/grant, monitoring/edge, and provider credential checks; preview-hostname and Preview override removal; final production 503 confirmation and keep-disabled or launch decision. T004 remains `READY`.
+Closed 2026-08-24 under the keep-production-disabled path. Active-dataset quota, the final physical-removal query for disposable dataset 36, remaining grant revalidation, monitoring/edge review, provider-side credential revocation, and a current production 503 check remain explicit release blockers for T014; they do not block offline development. T005 is promoted to `READY`.
 
 # T005 — Audit and Safely Modernize Non-Framework Dependencies
 
-Status: `PLANNED`
+Status: `READY`
 
 ## Recommended Codex Setting
 

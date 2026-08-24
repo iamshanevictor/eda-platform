@@ -25,13 +25,13 @@ This file is the persistent execution log for the EDA Platform modernization. It
 | Item | Status |
 |---|---|
 | Repository audit | Complete on 2026-08-03 |
-| Application changes | Phase 2 security/privacy implementation is merged on `master`; final cloud acceptance and cleanup gates remain |
-| Current execution phase | T004 — Phase 2 cloud security closeout; production remains fail-closed pending explicit launch approval |
-| Phase 0 preflight evidence | Superseded by the applied Phase 2 migration and recorded cloud checks; current unverified environment gates are tracked in T004 |
-| Next proposed phase | Complete T004, remove temporary preview exposure, record the keep-disabled or launch decision, then promote T005 |
+| Application changes | Phase 2 security/privacy implementation is merged; preview validation and temporary-exposure cleanup are complete; production remains disabled |
+| Current execution phase | T005 — audit and safely modernize non-framework dependencies |
+| Phase 0 preflight evidence | Superseded by the applied Phase 2 migration and recorded cloud checks; remaining release-only environment checks are deferred to T014 |
+| Next proposed phase | Implement T005 with `GPT-5.6 Terra · Medium`, then run developer-owned V2 validation |
 | Approval to implement Phase 0 | Approved and implemented on 2026-08-04 |
 | Approval to implement Phase 1 | Approved and implemented on 2026-08-04 |
-| Approval to implement Phase 2 locally | Approved on 2026-08-04; controlled cloud checkpoint subsequently approved and is in progress |
+| Approval to implement Phase 2 locally | Approved and closed on 2026-08-24 under the keep-production-disabled path |
 | Implementation branch | `master` |
 | Worktree at decision capture | `master` at `983b7c0`; Workflow V2 documentation is pending commit |
 
@@ -609,14 +609,44 @@ Append entries using this structure:
   upload copy; the second shows the Phase 2 closeout copy documenting the five
   rolling-hour attempts and 30-second interval, so the second preview is the
   current validation target.
+- Preview runtime: the second/current preview accepted the generated
+  three-record `t004-preview-smoke.csv`, returned no error, and performed the
+  required fresh redirect to `/data`. The owner session displayed dataset ID
+  36 with three records and its computed analysis. This confirms the effective
+  Preview upload setting is enabled and the deployed write/read path works.
+- Retention metadata: live read-only SQL confirmed dataset 36 has a non-null
+  owner, was created at `2026-08-24 12:40:52.148282+00`, expires exactly one day
+  later, and remained active at the checkpoint.
+- Cleanup scheduler: live read-only SQL returned exactly one active cron job
+  named `purge-expired-demo-data`, scheduled at `5 * * * *` with command
+  `select public.purge_expired_demo_data();`. Its five most recent hourly runs,
+  through `2026-08-24 12:05:00+00`, all succeeded.
+- Expiry hiding: the developer set only disposable dataset 36's `expires_at`
+  to `2026-08-24 12:58:03.210489+00`. On refresh, its owner session immediately
+  rendered the empty private workspace with no error, confirming expiry is
+  enforced before physical cleanup.
 - Previously recorded evidence retained: owner upload/read, cross-session
   denial, service-role-only write RPC access, redirect behavior, and an earlier
   production HTTP 503 kill-switch check passed.
-- Still required: identify a working preview, validate active-dataset quota,
-  expiry hiding, scheduled physical cleanup, current cron/grant state,
-  monitoring and edge controls, provider-side Groq credential revocation, then
-  remove both temporary preview hostnames and the Preview upload override.
+- Deferred release blockers: active-dataset quota, the final physical-removal
+  query for dataset 36, remaining grant revalidation, monitoring and current
+  edge controls, provider-side Groq credential revocation, and a current final
+  production HTTP 503 check. These do not block offline development, but they
+  block production launch.
 - Launch state: production uploads remain unapproved and must stay fail-closed.
-- Next step: perform one disposable upload through the second/current preview
-  and confirm HTTP success plus the fresh `/data` redirect. Do not remove
-  either hostname until the remaining preview tests finish.
+
+### 2026-08-24 — T004 closed under keep-production-disabled path
+
+- Cloud cleanup: the developer confirmed both temporary Vercel preview
+  hostnames were removed from Turnstile and the Preview-scoped
+  `UPLOADS_ENABLED` entry was deleted. The production hostname and
+  Production-scoped entry were left unchanged.
+- Validation disposition: preview upload, owner read, redirect, exact expiry,
+  immediate expiry hiding, single active cron configuration, recent successful
+  cleanup executions, cross-session denial, and service-role-only RPC evidence
+  are recorded. The remaining checks listed above are explicitly deferred to
+  release readiness rather than silently treated as passed.
+- Decision: keep production uploads disabled. Do not enable them until T014
+  resolves every release blocker and the developer explicitly approves launch.
+- Project state: T004 is `DONE`; T005 is `READY` with unchanged routing
+  `GPT-5.6 Terra · Medium`, Validation Tier `V2`, Executor `DEVELOPER`.
