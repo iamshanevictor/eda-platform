@@ -10,7 +10,7 @@ interface Dataset {
   file_name: string;
   file_size: number;
   created_at: string;
-  data?: Record<string, unknown>[]; // Make data optional for metadata-only queries
+  row_count: number;
 }
 
 interface Analysis {
@@ -36,7 +36,7 @@ export default async function DataPage() {
   if (authData.user?.is_anonymous) {
     const result = await supabase
       .from('datasets')
-      .select('id, file_name, file_size, created_at')
+      .select('id, file_name, file_size, created_at, row_count')
       .order('created_at', { ascending: false })
       .limit(50);
 
@@ -46,7 +46,7 @@ export default async function DataPage() {
 
   if (loadFailed) {
     return (
-      <div className="container mx-auto p-6 max-w-6xl">
+      <div className="container mx-auto p-4 sm:p-6 max-w-6xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Data Viewer & EDA Analysis
@@ -89,7 +89,7 @@ export default async function DataPage() {
   );
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container mx-auto p-4 sm:p-6 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           Data Viewer & EDA Analysis

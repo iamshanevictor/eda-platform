@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { requireDatasetId, requirePage, requirePageSize } from '@/lib/security/identifiers';
+import { deterministicSampleIndexes } from '@/lib/analysis/sampling';
 
 export interface DatasetDataResponse {
   data: Record<string, unknown>[];
@@ -21,10 +22,9 @@ export async function getDatasetData(
   const supabase = await createClient();
   
   try {
-    // Fetch the full dataset
     const { data: dataset, error } = await supabase
       .from('datasets')
-      .select('data')
+      .select('row_count')
       .eq('id', datasetId)
       .single();
 
@@ -32,23 +32,34 @@ export async function getDatasetData(
       throw new Error('Dataset data is unavailable');
     }
 
-    if (!dataset || !dataset.data) {
+    if (!dataset) {
       throw new Error('No data found for this dataset');
     }
 
-    const csvData = dataset.data as Record<string, unknown>[];
-    const totalRows = csvData.length;
-    
-    // Calculate pagination
+    const totalRows = dataset.row_count;
     const startIndex = (page - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const paginatedData = csvData.slice(startIndex, endIndex);
-    const hasMore = endIndex < totalRows;
+    const endIndex = Math.min(startIndex + pageSize, totalRows);
+    let paginatedData: Record<string, unknown>[] = [];
+
+    if (startIndex < totalRows) {
+      const { data: rows, error: rowsError } = await supabase
+        .from('dataset_rows')
+        .select('row_data')
+        .eq('dataset_id', datasetId)
+        .order('row_index', { ascending: true })
+        .range(startIndex, endIndex - 1);
+
+      if (rowsError) {
+        throw new Error('Dataset data is unavailable');
+      }
+
+      paginatedData = (rows ?? []).map(row => row.row_data as Record<string, unknown>);
+    }
 
     return {
       data: paginatedData,
       totalRows,
-      hasMore
+      hasMore: endIndex < totalRows
     };
   } catch (error) {
     console.error('Error fetching dataset data');
@@ -68,7 +79,7 @@ export async function getDatasetSample(
   try {
     const { data: dataset, error } = await supabase
       .from('datasets')
-      .select('data')
+      .select('row_count')
       .eq('id', datasetId)
       .single();
 
@@ -76,20 +87,27 @@ export async function getDatasetSample(
       throw new Error('Dataset sample is unavailable');
     }
 
-    if (!dataset || !dataset.data) {
+    if (!dataset) {
       throw new Error('No data found for this dataset');
     }
 
-    const csvData = dataset.data as Record<string, unknown>[];
-    
-    // Return a random sample for better performance
-    if (csvData.length <= sampleSize) {
-      return csvData;
+    const indexes = deterministicSampleIndexes(dataset.row_count, sampleSize);
+    if (indexes.length === 0) {
+      return [];
     }
 
-    // Simple random sampling
-    const shuffled = [...csvData].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, sampleSize);
+    const { data: rows, error: rowsError } = await supabase
+      .from('dataset_rows')
+      .select('row_index, row_data')
+      .eq('dataset_id', datasetId)
+      .in('row_index', indexes)
+      .order('row_index', { ascending: true });
+
+    if (rowsError) {
+      throw new Error('Dataset sample is unavailable');
+    }
+
+    return (rows ?? []).map(row => row.row_data as Record<string, unknown>);
   } catch (error) {
     console.error('Error fetching dataset sample');
     throw error instanceof Error ? error : new Error('Dataset sample is unavailable');

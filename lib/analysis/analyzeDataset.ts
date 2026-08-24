@@ -31,31 +31,16 @@ export function analyzeDatasetData(
   });
 
   columns.forEach((column) => {
-    const values = csvData
+    const nonNullValues = csvData
       .map((row) => row[column])
-      .filter((value) => value !== null && value !== undefined && value !== "");
-    const nonNullValues = values.filter(
-      (value) => value !== null && value !== undefined && value !== "",
-    );
+      .filter((value) => !isMissing(value));
 
     missingValues[column] = csvData.length - nonNullValues.length;
 
     if (nonNullValues.length === 0) {
       columnTypes[column] = "empty";
     } else {
-      const firstValue = nonNullValues[0];
-      if (typeof firstValue === "number" || !isNaN(Number(firstValue))) {
-        columnTypes[column] = "numeric";
-      } else if (typeof firstValue === "boolean") {
-        columnTypes[column] = "boolean";
-      } else if (
-        firstValue instanceof Date ||
-        !isNaN(Date.parse(String(firstValue)))
-      ) {
-        columnTypes[column] = "date";
-      } else {
-        columnTypes[column] = "text";
-      }
+      columnTypes[column] = inferColumnType(nonNullValues);
     }
 
     if (columnTypes[column] === "numeric") {
@@ -76,25 +61,14 @@ export function analyzeDatasetData(
 
         summaryStats[column] = {
           count: numericValues.length,
-          mean: Number(mean.toFixed(4)),
-          median:
-            sorted.length % 2 === 0
-              ? Number(
-                  (
-                    (sorted[sorted.length / 2 - 1] +
-                      sorted[sorted.length / 2]) /
-                    2
-                  ).toFixed(4),
-                )
-              : Number(sorted[Math.floor(sorted.length / 2)].toFixed(4)),
-          std_dev: Number(stdDev.toFixed(4)),
-          min: Number(Math.min(...numericValues).toFixed(4)),
-          max: Number(Math.max(...numericValues).toFixed(4)),
-          q1: Number(sorted[Math.floor(sorted.length * 0.25)].toFixed(4)),
-          q3: Number(sorted[Math.floor(sorted.length * 0.75)].toFixed(4)),
-          range: Number(
-            (Math.max(...numericValues) - Math.min(...numericValues)).toFixed(4),
-          ),
+          mean: round(mean),
+          median: round(quantile(sorted, 0.5)),
+          std_dev: round(stdDev),
+          min: round(Math.min(...numericValues)),
+          max: round(Math.max(...numericValues)),
+          q1: round(quantile(sorted, 0.25)),
+          q3: round(quantile(sorted, 0.75)),
+          range: round(Math.max(...numericValues) - Math.min(...numericValues)),
         };
       }
     } else if (columnTypes[column] === "text") {
@@ -120,16 +94,16 @@ export function analyzeDatasetData(
         ),
       };
     } else if (columnTypes[column] === "boolean") {
-      const booleanValues = nonNullValues.map((value) => Boolean(value));
+      const booleanValues = nonNullValues.map((value) =>
+        typeof value === "boolean" ? value : String(value).trim().toLowerCase() === "true",
+      );
       const trueCount = booleanValues.filter((value) => value === true).length;
 
       summaryStats[column] = {
         count: booleanValues.length,
         true_count: trueCount,
         false_count: booleanValues.length - trueCount,
-        true_percentage: Number(
-          ((trueCount / booleanValues.length) * 100).toFixed(2),
-        ),
+        true_percentage: round((trueCount / booleanValues.length) * 100, 2),
       };
     }
   });
@@ -139,26 +113,27 @@ export function analyzeDatasetData(
   ).slice(0, UPLOAD_LIMITS.maxCorrelationColumns);
 
   for (let i = 0; i < numericColumns.length; i++) {
-    for (let j = 0; j < numericColumns.length; j++) {
+    for (let j = i; j < numericColumns.length; j++) {
       const columnA = numericColumns[i];
       const columnB = numericColumns[j];
 
       if (columnA === columnB) {
         correlationMatrix[columnA][columnB] = 1;
       } else {
-        const valuesA = csvData
-          .map((row) => Number(row[columnA]))
-          .filter((value) => !isNaN(value));
-        const valuesB = csvData
-          .map((row) => Number(row[columnB]))
-          .filter((value) => !isNaN(value));
-
-        if (valuesA.length > 0 && valuesB.length > 0) {
-          const correlation = calculateCorrelation(valuesA, valuesB);
-          correlationMatrix[columnA][columnB] = Number(
-            correlation.toFixed(4),
-          );
-        }
+        const pairs = csvData.flatMap((row) => {
+          const valueA = row[columnA];
+          const valueB = row[columnB];
+          return isNumericValue(valueA) && isNumericValue(valueB)
+            ? [[Number(valueA), Number(valueB)] as const]
+            : [];
+        });
+        const correlation = calculateCorrelation(
+          pairs.map(([value]) => value),
+          pairs.map(([, value]) => value),
+        );
+        const rounded = round(correlation);
+        correlationMatrix[columnA][columnB] = rounded;
+        correlationMatrix[columnB][columnA] = rounded;
       }
     }
   }
@@ -173,7 +148,7 @@ export function analyzeDatasetData(
 
 function calculateCorrelation(x: number[], y: number[]): number {
   const n = Math.min(x.length, y.length);
-  if (n === 0) return 0;
+  if (n < 2) return 0;
 
   const xSlice = x.slice(0, n);
   const ySlice = y.slice(0, n);
@@ -193,4 +168,59 @@ function calculateCorrelation(x: number[], y: number[]): number {
   );
 
   return denominator === 0 ? 0 : numerator / denominator;
+}
+
+function isMissing(value: unknown): boolean {
+  return value === null || value === undefined ||
+    (typeof value === "string" && value.trim() === "");
+}
+
+function inferColumnType(values: unknown[]): string {
+  if (values.every(isBooleanValue)) return "boolean";
+  if (values.every(isNumericValue)) return "numeric";
+  if (values.every(isIsoDateValue)) return "date";
+  return "text";
+}
+
+function isBooleanValue(value: unknown): boolean {
+  return typeof value === "boolean" ||
+    (typeof value === "string" && /^(true|false)$/i.test(value.trim()));
+}
+
+function isNumericValue(value: unknown): boolean {
+  if (typeof value === "boolean" || isMissing(value)) return false;
+  if (typeof value === "number") return Number.isFinite(value);
+  if (typeof value !== "string") return false;
+  return Number.isFinite(Number(value.trim()));
+}
+
+function isIsoDateValue(value: unknown): boolean {
+  if (value instanceof Date) return Number.isFinite(value.getTime());
+  if (typeof value !== "string") return false;
+  const normalized = value.trim();
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized);
+  if (dateOnly) {
+    const year = Number(dateOnly[1]);
+    const month = Number(dateOnly[2]);
+    const day = Number(dateOnly[3]);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return date.getUTCFullYear() === year &&
+      date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+  }
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/.test(normalized) &&
+    Number.isFinite(Date.parse(normalized));
+}
+
+function quantile(sorted: number[], probability: number): number {
+  if (sorted.length === 1) return sorted[0];
+  const position = (sorted.length - 1) * probability;
+  const lower = Math.floor(position);
+  const upper = Math.ceil(position);
+  const weight = position - lower;
+  return sorted[lower] + (sorted[upper] - sorted[lower]) * weight;
+}
+
+function round(value: number, digits = 4): number {
+  const rounded = Number(value.toFixed(digits));
+  return Object.is(rounded, -0) ? 0 : rounded;
 }

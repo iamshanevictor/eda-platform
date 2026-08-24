@@ -40,7 +40,7 @@ Use npm as the only package manager. The required versions are recorded in
 | Retention | Hidden at 24 hours; hourly physical cleanup |
 
 These limits protect free Vercel and Supabase capacity. Raising them requires
-profiling the JSONB storage and synchronous analysis path first.
+profiling the row-oriented storage and synchronous analysis path first.
 
 ## Local setup
 
@@ -79,11 +79,13 @@ only with reviewed hostname restrictions.
 
 ## Database and Auth setup
 
-The repository uses a versioned migration instead of dashboard-authored demo
-policies:
+The repository uses versioned migrations instead of dashboard-authored demo
+policies. Apply them in filename order:
 
 ```text
 supabase/migrations/20260804000100_phase_2_security.sql
+supabase/migrations/20260805000100_phase_2_fix_upload_expiry_reference.sql
+supabase/migrations/20260824000100_row_oriented_dataset_storage.sql
 ```
 
 Before applying it, follow
@@ -113,14 +115,17 @@ the `authenticated` Postgres role; ownership and expiry are enforced by RLS.
 5. The server decodes UTF-8, parses and validates CSV structure, bounds JSON
    expansion, and computes EDA results.
 6. A service-role-only database function revalidates the reservation/envelope
-   and atomically inserts the owned dataset and analysis.
+   and atomically inserts dataset metadata, ordered rows, and analysis.
 7. Reads and deletes use the visitor's anonymous session and owner-based RLS.
+   Pages query at most 100 ordered rows, charts use an evenly spaced sample of
+   at most 1,000 rows, and reports read only metadata plus stored analysis.
 8. RLS hides data at 24 hours; Supabase Cron removes expired datasets and later
    removes orphaned anonymous Auth users.
 
-The complete parsed CSV currently remains a JSONB row. Pagination slices that
-JSON after retrieval, so this is intentionally a small-file demo rather than a
-large-data platform.
+Rows are stored individually in `dataset_rows`; `datasets.row_count` is the
+authoritative total. The legacy dataset JSONB column remains empty for safe
+forward compatibility. Upload parsing and analysis are still synchronous and
+bounded, so this remains a small-file demo rather than a large-data platform.
 
 ## Commands
 
@@ -151,11 +156,22 @@ save a searchable/selectable PDF. Pixel-identical PDF output is not a goal.
   and the cleanup job. Use conservative alerts at 50%, 75%, and 90%.
 - During an incident, disable uploads first. Do not weaken RLS as a rollback.
 
-## Known analysis behavior
+## Analysis semantics
 
-Phase 0 characterization tests intentionally preserve several historical
-statistical behaviors, including first-value type inference, broad date parsing,
-population standard deviation, index-based quartiles, Boolean numeric coercion,
-and row-misaligned correlations. Statistical corrections are planned as a
-separate reviewed phase. Phase 2 only caps correlation work to 30 numeric
-columns for resource safety.
+Types are inferred from every non-missing value. Boolean detection precedes
+numeric detection; numeric columns require finite numeric values; and dates
+require ISO calendar dates or timezone-qualified datetimes. Statistics use
+population standard deviation and R-7 interpolated quartiles. Pearson
+correlation is pairwise-complete and row-aligned; insufficient or constant
+pairs return `0`, numeric diagonals return `1`, and correlation work is capped
+at the first 30 numeric columns. Display values are rounded to four decimals.
+The complete contract is recorded in `DECISION.md`.
+
+## Release status
+
+Production uploads remain disabled. Repository implementation and automated
+quality checks do not replace the deferred cloud/browser release checklist:
+quota, grants, physical cleanup, monitoring/edge controls, obsolete provider
+credential revocation, current production HTTP 503, responsive/keyboard checks,
+and short/multi-page print checks must be confirmed before explicit launch
+approval.

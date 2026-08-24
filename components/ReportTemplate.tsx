@@ -30,7 +30,7 @@ export const ReportTemplate = forwardRef<HTMLDivElement, ReportTemplateProps>(
     };
 
     return (
-      <div ref={ref} className="max-w-4xl mx-auto p-8 bg-white text-black">
+      <div ref={ref} className="eda-report max-w-4xl mx-auto p-4 sm:p-8 bg-white text-black">
         {/* Header */}
         <div className="text-center mb-8 border-b-2 border-gray-300 pb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">

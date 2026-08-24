@@ -119,7 +119,7 @@ export function HistogramChart({ data, numericColumns, maxColumns = 4 }: Histogr
                   tickLine={false}
                 />
                 <Tooltip 
-                  formatter={(value: number) => [value, 'Count']}
+                  formatter={(value) => [Number(value ?? 0), 'Count']}
                   labelFormatter={(label) => `Range: ${label}`}
                 />
                 <Bar 

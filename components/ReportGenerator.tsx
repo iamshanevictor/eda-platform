@@ -2,13 +2,11 @@
 
 import { useState, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ReportTemplate } from '@/components/ReportTemplate';
 import { generateReportData, ReportData } from '@/app/actions/generateReport';
-import { FileText, Download, Printer, Loader2, Eye, X } from 'lucide-react';
+import { FileText, Printer, Loader2, Eye, X } from 'lucide-react';
 
 interface ReportGeneratorProps {
   datasetId: number;
@@ -53,55 +51,6 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
     `,
   });
 
-  const handleExportPDF = async () => {
-    if (!reportRef.current) return;
-
-    try {
-      setIsGenerating(true);
-      
-      // Create canvas from the report
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-
-      let position = 0;
-
-      // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      // Add additional pages if needed
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      // Save the PDF
-      const fileName = `EDA_Report_${datasetName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-      pdf.save(fileName);
-      
-    } catch (err) {
-      setError('Failed to export PDF');
-      console.error('PDF export error:', err);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   if (error) {
     return (
       <Card>
@@ -112,7 +61,7 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+          <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-md">
             <p className="text-red-800">{error}</p>
             <Button 
               onClick={handleGenerateReport} 
@@ -140,7 +89,7 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
         <CardContent>
           <div className="space-y-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Generate a comprehensive PDF report with all analysis results, statistics, and insights for this dataset.
+              Generate a comprehensive report, then print it or use your browser&apos;s Print to PDF for searchable, selectable output.
             </p>
             
             {!reportData ? (
@@ -170,24 +119,7 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
                   className="flex-1"
                 >
                   <Printer className="h-4 w-4 mr-2" />
-                  Print Report
-                </Button>
-                <Button 
-                  onClick={handleExportPDF}
-                  disabled={isGenerating}
-                  className="flex-1"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Exporting...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="h-4 w-4 mr-2" />
-                      Export PDF
-                    </>
-                  )}
+                  Print or Save as PDF
                 </Button>
               </div>
             )}
@@ -219,7 +151,7 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              This is a preview of your report. Use the buttons above to print or export as PDF, or click &quot;View Full Report&quot; for a larger view.
+              This is a preview of your report. Print it or save it as a PDF from the browser print dialog, or open the full preview.
             </p>
           </CardContent>
         </Card>
@@ -227,11 +159,11 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
 
       {/* Full Report Modal */}
       {isModalOpen && reportData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="report-preview-title">
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h2 id="report-preview-title" className="text-xl font-semibold text-gray-900 dark:text-white">
                 Full Report Preview - {datasetName}
               </h2>
               <Button
@@ -239,6 +171,7 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0"
+                aria-label="Close full report preview"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -254,7 +187,7 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
             {/* Modal Footer */}
             <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Use the buttons in the main interface to print or export this report as PDF.
+                Print this report or save it as a PDF from the browser print dialog.
               </p>
               <div className="flex gap-2">
                 <Button
@@ -270,22 +203,6 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
                 >
                   <Printer className="h-4 w-4 mr-2" />
                   Print
-                </Button>
-                <Button
-                  onClick={handleExportPDF}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Exporting...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="h-4 w-4 mr-2" />
-                      Export PDF
-                    </>
-                  )}
                 </Button>
               </div>
             </div>

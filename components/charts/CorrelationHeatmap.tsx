@@ -71,8 +71,8 @@ export function CorrelationHeatmap({ correlationMatrix, numericColumns }: Correl
       </div>
 
       {/* Heatmap Grid */}
-      <div className="w-full">
-        <div className="w-full">
+      <div className="w-full overflow-x-auto" role="region" aria-label="Correlation matrix" tabIndex={0}>
+        <div className="min-w-max">
           {/* Header row with column names */}
           <div className="flex">
             <div className="w-24 h-8 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -122,7 +122,7 @@ export function CorrelationHeatmap({ correlationMatrix, numericColumns }: Correl
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center space-x-4 text-xs">
+      <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
         <div className="flex items-center space-x-1">
           <div className="w-4 h-4 bg-red-500 rounded"></div>
           <span>Strong (|r| &gt; 0.8)</span>

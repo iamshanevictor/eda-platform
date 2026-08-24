@@ -16,7 +16,7 @@ interface Dataset {
   file_name: string;
   file_size: number;
   created_at: string;
-  data?: Record<string, unknown>[];
+  row_count: number;
 }
 
 interface Analysis {
@@ -41,10 +41,12 @@ export function OptimizedDatasetTabs({ datasets }: OptimizedDatasetTabsProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [datasetToDelete, setDatasetToDelete] = useState<DatasetWithAnalysis | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const activeDataset = datasets.find(d => d.id === activeDatasetId);
 
   const handleDeleteClick = (dataset: DatasetWithAnalysis) => {
+    setDeleteError(null);
     setDatasetToDelete(dataset);
     setDeleteDialogOpen(true);
   };
@@ -71,11 +73,11 @@ export function OptimizedDatasetTabs({ datasets }: OptimizedDatasetTabsProps) {
         setDeleteDialogOpen(false);
         setDatasetToDelete(null);
       } else {
-        alert(`Failed to delete dataset: ${result.message}`);
+        setDeleteError(`Failed to delete dataset: ${result.message}`);
       }
     } catch (error) {
       console.error('Error deleting dataset:', error);
-      alert('An error occurred while deleting the dataset');
+      setDeleteError('An error occurred while deleting the dataset');
     } finally {
       setIsDeleting(false);
     }
@@ -96,7 +98,12 @@ export function OptimizedDatasetTabs({ datasets }: OptimizedDatasetTabsProps) {
   return (
     <div className="space-y-6">
       {/* Dataset Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700">
+      {deleteError && (
+        <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200">
+          {deleteError}
+        </div>
+      )}
+      <div role="tablist" aria-label="Uploaded datasets" className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700">
         {datasets.map((dataset) => (
           <Button
             key={dataset.id}
@@ -104,6 +111,9 @@ export function OptimizedDatasetTabs({ datasets }: OptimizedDatasetTabsProps) {
             size="sm"
             onClick={() => setActiveDatasetId(dataset.id)}
             className="flex items-center gap-2"
+            role="tab"
+            aria-selected={activeDatasetId === dataset.id}
+            aria-controls={`dataset-panel-${dataset.id}`}
           >
             <span className="truncate max-w-32">{dataset.file_name}</span>
             <span className="text-xs opacity-70">({(dataset.file_size / 1024).toFixed(0)}KB)</span>
@@ -143,64 +153,72 @@ function OptimizedDatasetContent({
   onDeleteClick: (dataset: DatasetWithAnalysis) => void;
 }) {
   const [datasetData, setDatasetData] = useState<Record<string, unknown>[] | null>(null);
+  const [sampleData, setSampleData] = useState<Record<string, unknown>[] | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [dataPage, setDataPage] = useState(1);
   const [hasMoreData, setHasMoreData] = useState(false);
-  const [totalRows, setTotalRows] = useState(0);
+  const [totalRows, setTotalRows] = useState(dataset.row_count);
+  const [dataError, setDataError] = useState<string | null>(null);
+  const pageSize = 100;
 
   // Load data lazily when component mounts or dataset changes
   useEffect(() => {
     const loadData = async () => {
       setIsLoadingData(true);
+      setDataError(null);
+      setDatasetData(null);
+      setSampleData(null);
+      setDataPage(1);
       try {
-        // Use sample data for initial load (better performance)
-        const sampleData = await getDatasetSample(dataset.id, 1000);
-        setDatasetData(sampleData);
-        
-        // Get total count for display
-        const fullData = await getDatasetData(dataset.id, 1, 1);
-        setTotalRows(fullData.totalRows);
-        setHasMoreData(fullData.hasMore);
-      } catch (error) {
-        console.error('Error loading dataset data:', error);
-        // Fallback to existing data if available
-        if (dataset.data) {
-          setDatasetData(dataset.data);
-          setTotalRows(dataset.data.length);
-        }
+        const [page, sample] = await Promise.all([
+          getDatasetData(dataset.id, 1, pageSize),
+          getDatasetSample(dataset.id, 1000),
+        ]);
+        setDatasetData(page.data);
+        setSampleData(sample);
+        setTotalRows(page.totalRows);
+        setHasMoreData(page.hasMore);
+      } catch {
+        setDataError('Dataset rows are unavailable or have expired.');
       } finally {
         setIsLoadingData(false);
       }
     };
 
     loadData();
-  }, [dataset.id, dataset.data]);
+  }, [dataset.id, dataset.row_count]);
 
-  const loadMoreData = async () => {
-    if (!hasMoreData) return;
-    
+  const loadDataPage = async (nextPage: number) => {
+    if (nextPage < 1) return;
     setIsLoadingData(true);
+    setDataError(null);
     try {
-      const nextPage = dataPage + 1;
-      const result = await getDatasetData(dataset.id, nextPage, 1000);
-      setDatasetData(prev => prev ? [...prev, ...result.data] : result.data);
+      const result = await getDatasetData(dataset.id, nextPage, pageSize);
+      setDatasetData(result.data);
       setDataPage(nextPage);
       setHasMoreData(result.hasMore);
-    } catch (error) {
-      console.error('Error loading more data:', error);
+      setTotalRows(result.totalRows);
+    } catch {
+      setDataError('Unable to load that data page.');
     } finally {
       setIsLoadingData(false);
     }
   };
 
-  const dataPreview = datasetData ? datasetData.slice(0, 3) : [];
+  const firstVisibleRow = totalRows === 0 ? 0 : (dataPage - 1) * pageSize + 1;
+  const lastVisibleRow = Math.min(dataPage * pageSize, totalRows);
 
   return (
-    <div className="space-y-4">
+    <div
+      id={`dataset-panel-${dataset.id}`}
+      role="tabpanel"
+      aria-busy={isLoadingData}
+      className="space-y-4"
+    >
       {/* Dataset Header */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="truncate">{dataset.file_name}</span>
             <div className="flex items-center space-x-2">
               {dataset.analysis && (
@@ -216,6 +234,8 @@ function OptimizedDatasetContent({
                 size="sm"
                 onClick={() => onDeleteClick(dataset)}
                 className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                aria-label={`Delete ${dataset.file_name}`}
+                title={`Delete ${dataset.file_name}`}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -224,14 +244,14 @@ function OptimizedDatasetContent({
           <div className="text-sm text-gray-600 dark:text-gray-400">
             Uploaded: {new Date(dataset.created_at).toLocaleString()} | 
             Size: {(dataset.file_size / 1024).toFixed(2)} KB | 
-            Records: {totalRows > 0 ? totalRows.toLocaleString() : 'Loading...'}
+            Records: {totalRows.toLocaleString()}
           </div>
         </CardHeader>
       </Card>
 
       {/* Detailed Analysis Results */}
       {dataset.analysis ? (
-        <AnalysisResults analysis={dataset.analysis} datasetData={datasetData || undefined} />
+        <AnalysisResults analysis={dataset.analysis} totalRows={totalRows} />
       ) : (
         <Card>
           <CardContent className="p-4">
@@ -245,8 +265,8 @@ function OptimizedDatasetContent({
       )}
 
       {/* Advanced Charts - Only render if we have data */}
-      {dataset.analysis && datasetData && (
-        <AdvancedCharts data={datasetData} analysis={dataset.analysis} />
+      {dataset.analysis && sampleData && (
+        <AdvancedCharts data={sampleData} totalRows={totalRows} analysis={dataset.analysis} />
       )}
 
       {/* Report Generator */}
@@ -260,50 +280,60 @@ function OptimizedDatasetContent({
       {/* Raw Data Preview with Pagination */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg flex items-center justify-between">
+          <CardTitle className="text-lg flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <span>Data Preview</span>
             <div className="flex items-center gap-2">
               {totalRows > 0 && (
                 <span className="text-sm text-gray-500">
-                  Showing {datasetData?.length || 0} of {totalRows.toLocaleString()} records
+                  Showing {firstVisibleRow.toLocaleString()}–{lastVisibleRow.toLocaleString()} of {totalRows.toLocaleString()} records
                 </span>
               )}
-              {hasMoreData && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={loadMoreData}
-                  disabled={isLoadingData}
-                >
-                  {isLoadingData ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Loading...
-                    </>
-                  ) : (
-                    'Load More'
-                  )}
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => loadDataPage(dataPage - 1)}
+                disabled={isLoadingData || dataPage === 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => loadDataPage(dataPage + 1)}
+                disabled={isLoadingData || !hasMoreData}
+              >
+                {isLoadingData ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  'Next'
+                )}
+              </Button>
             </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoadingData && !datasetData ? (
-            <div className="flex items-center justify-center h-32">
+          {dataError ? (
+            <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200">
+              {dataError}
+            </div>
+          ) : isLoadingData && !datasetData ? (
+            <div role="status" aria-live="polite" className="flex items-center justify-center h-32">
               <Loader2 className="h-6 w-6 animate-spin mr-2" />
               <span>Loading data...</span>
             </div>
           ) : (
             <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md p-4 overflow-auto max-h-64">
               <pre className="text-xs text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
-                {JSON.stringify(dataPreview, null, 2)}
+                {JSON.stringify(datasetData ?? [], null, 2)}
               </pre>
             </div>
           )}
-              {totalRows > 3 && (
+              {totalRows > pageSize && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  Showing first 3 records. Use &quot;Load More&quot; to see additional data.
+                  Use Previous and Next to move through bounded pages of {pageSize} records.
                 </p>
               )}
         </CardContent>

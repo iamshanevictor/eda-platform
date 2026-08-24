@@ -142,7 +142,7 @@ export function ScatterPlot({ data, numericColumns, maxPlots = 6, singlePlot }: 
                 />
                 <Tooltip 
                   cursor={{ strokeDasharray: '3 3' }}
-                  formatter={(value: number, name: string) => [value, name]}
+                  formatter={(value, name) => [Number(value ?? 0), String(name)]}
                   labelFormatter={(label, payload) => {
                     if (payload && payload[0]) {
                       return `${plot.xColumn}: ${payload[0].payload.x}, ${plot.yColumn}: ${payload[0].payload.y}`;

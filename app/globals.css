@@ -58,6 +58,40 @@
   }
 }
 
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .eda-report,
+  .eda-report * {
+    visibility: visible;
+  }
+
+  .eda-report {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    color: #000;
+    background: #fff;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .eda-report section,
+  .eda-report table,
+  .eda-report tr,
+  .eda-report .rounded-lg {
+    break-inside: avoid;
+  }
+
+  .eda-report thead {
+    display: table-header-group;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

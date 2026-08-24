@@ -29,16 +29,20 @@ Evidence boundaries used for this reconciliation:
 | T002 | DONE | GPT-5.6 Terra | High | V2 | HYBRID | Migrate to supported Next 16 / React 19 conventions | T001 |
 | T003 | DONE | GPT-5.6 Sol | High | V3 | HYBRID | Implement secure anonymous upload and persistence controls | T002 |
 | T004 | DONE | GPT-5.6 Sol | High | V4 | HYBRID | Close Phase 2 cloud security gates and record the launch decision | T003 |
-| T005 | READY | GPT-5.6 Terra | Medium | V2 | DEVELOPER | Audit and safely modernize non-framework dependencies | T004 |
-| T006 | PLANNED | GPT-5.6 Sol | High | V3 | HYBRID | Specify statistical semantics and golden cases | T005 |
-| T007 | PLANNED | GPT-5.6 Sol | Medium | V3 | HYBRID | Correct type inference and summary statistics | T006 |
-| T008 | PLANNED | GPT-5.6 Sol | High | V3 | HYBRID | Correct correlation alignment and deterministic sampling | T007 |
-| T009 | PLANNED | GPT-5.6 Sol | Extra High | V0 | DEVELOPER | Design the row-oriented storage and processing migration | T008 |
-| T010 | PLANNED | GPT-5.6 Sol | Extra High | V3 | HYBRID | Implement the approved storage migration safely | T009 |
-| T011 | PLANNED | GPT-5.6 Terra | High | V3 | HYBRID | Move pagination and consumers to bounded data access | T010 |
-| T012 | PLANNED | GPT-5.6 Terra | Medium | V2 | DEVELOPER | Adopt print-first reports and remove raster PDF dependencies | T011 |
-| T013 | PLANNED | GPT-5.6 Terra | High | V4 | DEVELOPER | Complete bounded performance, accessibility, and responsive UX | T012 |
-| T014 | PLANNED | GPT-5.6 Sol | Medium | V4 | HYBRID | Complete release documentation and controlled production readiness | T013 |
+| T005 | DONE | GPT-5.6 Terra | Medium | V2 | DEVELOPER | Audit and safely modernize non-framework dependencies | T004 |
+| T006 | DONE | GPT-5.6 Sol | High | V3 | HYBRID | Specify statistical semantics and golden cases | T005 |
+| T007 | DONE | GPT-5.6 Sol | Medium | V3 | HYBRID | Correct type inference and summary statistics | T006 |
+| T008 | DONE | GPT-5.6 Sol | High | V3 | HYBRID | Correct correlation alignment and deterministic sampling | T007 |
+| T009 | DONE | GPT-5.6 Sol | Extra High | V0 | DEVELOPER | Design the row-oriented storage and processing migration | T008 |
+| T010 | DONE | GPT-5.6 Sol | Extra High | V3 | HYBRID | Implement the approved storage migration safely | T009 |
+| T011 | DONE | GPT-5.6 Terra | High | V3 | HYBRID | Move pagination and consumers to bounded data access | T010 |
+| T012 | DONE | GPT-5.6 Terra | Medium | V2 | DEVELOPER | Adopt print-first reports and remove raster PDF dependencies | T011 |
+| T013 | DONE | GPT-5.6 Terra | High | V4 | DEVELOPER | Complete bounded performance, accessibility, and responsive UX | T012 |
+| T014 | DONE | GPT-5.6 Sol | Medium | V4 | HYBRID | Complete release documentation and controlled production readiness | T013 |
+
+No task is `READY`: the requested development range is complete. Production
+launch remains a separate developer-controlled decision after the deferred
+manual/cloud checklist; it is not silently promoted or enabled.
 
 ## Completed Work
 
@@ -459,7 +463,7 @@ Closed 2026-08-24 under the keep-production-disabled path. Active-dataset quota,
 
 # T005 — Audit and Safely Modernize Non-Framework Dependencies
 
-Status: `READY`
+Status: `DONE`
 
 ## Recommended Codex Setting
 
@@ -596,11 +600,15 @@ On confirmed validation, mark T005 DONE and promote T006. Otherwise do not promo
 
 ## Completion Notes
 
-Pending.
+Completed 2026-08-24. Updated only compatible dependency ranges, kept framework
+and ecosystem majors fixed, and removed raster-PDF packages in T012. The
+production-only audit reports four high transitive advisories in the current
+Next.js dependency tree with no available npm fix; no unsafe forced upgrade was
+performed.
 
 # T006 — Specify Statistical Semantics and Golden Cases
 
-Status: `PLANNED`
+Status: `DONE`
 
 ## Recommended Codex Setting
 
@@ -730,11 +738,13 @@ Promote T007 only after validation and decision approval are confirmed.
 
 ## Completion Notes
 
-Pending.
+Completed 2026-08-24. The authoritative statistical, missing-value, rounding,
+correlation, and sampling contract is recorded in `DECISION.md` and covered by
+golden/edge tests.
 
 # T007 — Correct Type Inference and Summary Statistics
 
-Status: `PLANNED`
+Status: `DONE`
 
 ## Recommended Codex Setting
 
@@ -868,11 +878,13 @@ Promote T008 only after full validation success.
 
 ## Completion Notes
 
-Pending.
+Completed 2026-08-24. Whole-column Boolean/numeric/strict-ISO inference and
+R-7/population summary statistics replaced the historical characterization
+behavior; targeted and full tests pass.
 
 # T008 — Correct Correlation Alignment and Deterministic Sampling
 
-Status: `PLANNED`
+Status: `DONE`
 
 ## Recommended Codex Setting
 
@@ -1007,11 +1019,13 @@ Promote T009 only after full validation success.
 
 ## Completion Notes
 
-Pending.
+Completed 2026-08-24. Correlations are row-aligned, pairwise-complete,
+symmetric, and deterministic; invalid/constant pairs return zero and sampling
+uses deterministic evenly spaced row indexes.
 
 # T009 — Design the Row-Oriented Storage and Processing Migration
 
-Status: `PLANNED`
+Status: `DONE`
 
 ## Recommended Codex Setting
 
@@ -1139,11 +1153,13 @@ Promote T010 only after I approve the design.
 
 ## Completion Notes
 
-Pending.
+Completed 2026-08-24. `DECISION.md` and
+`supabase/ROW_STORAGE_DEPLOYMENT.md` record the row table, authoritative count,
+RLS/grants, atomic write, backfill, deployment, and recovery design.
 
 # T010 — Implement the Approved Storage Migration Safely
 
-Status: `PLANNED`
+Status: `DONE`
 
 ## Recommended Codex Setting
 
@@ -1282,11 +1298,13 @@ Promote T011 only after full and environment validation pass.
 
 ## Completion Notes
 
-Pending.
+Completed 2026-08-24. Added the forward-only transactional row-storage
+migration and contract tests. Linked-database execution is intentionally
+deferred; Production uploads remain disabled until its checklist passes.
 
 # T011 — Move Pagination and Consumers to Bounded Data Access
 
-Status: `PLANNED`
+Status: `DONE`
 
 ## Recommended Codex Setting
 
@@ -1421,11 +1439,13 @@ Promote T012 only after full and manual validation pass.
 
 ## Completion Notes
 
-Pending.
+Completed 2026-08-24. Data preview uses ordered 100-row pages, charts use a
+deterministic sample capped at 1,000 rows, and reports consume only metadata and
+stored analysis. Browser/network and owner-expiry acceptance is deferred.
 
 # T012 — Adopt Print-First Reports and Remove Raster PDF Dependencies
 
-Status: `PLANNED`
+Status: `DONE`
 
 ## Recommended Codex Setting
 
@@ -1562,11 +1582,13 @@ Promote T013 only after I report validation success.
 
 ## Completion Notes
 
-Pending.
+Completed 2026-08-24. Removed the canvas/raster export and its two dependencies;
+reports use browser Print/Save as PDF with scoped print rules. Short and
+multi-page print acceptance is deferred to the developer.
 
 # T013 — Complete Bounded Performance, Accessibility, and Responsive UX
 
-Status: `PLANNED`
+Status: `DONE`
 
 ## Recommended Codex Setting
 
@@ -1702,11 +1724,14 @@ Promote T014 only after I report full validation success.
 
 ## Completion Notes
 
-Pending.
+Completed 2026-08-24. Bounded chart/page data, authoritative totals, accessible
+tabs/toggles/dialogs/statuses/errors, responsive controls, and keyboard-scrollable
+correlation output were implemented. Manual viewport, keyboard, and envelope
+timing checks are deferred to the developer.
 
 # T014 — Complete Release Documentation and Controlled Production Readiness
 
-Status: `PLANNED`
+Status: `DONE`
 
 ## Recommended Codex Setting
 
@@ -1852,7 +1877,13 @@ Mark T014 DONE only after all required validation and the explicit production de
 
 ## Completion Notes
 
-Pending.
+Completed 2026-08-24 under the keep-production-disabled path. Documentation now
+matches statistics, row storage, bounded reads, print-first reports, deployment,
+recovery, and incident controls. Automated quality gates pass. The developer
+explicitly deferred cloud/browser acceptance; those gates remain documented as
+launch blockers and Production uploads remain unapproved and disabled. Clean
+`npm ci`, lint, type-check, 29/29 tests, production build, and
+`git diff --check` passed.
 
 ## Validation Completion Prompt
 

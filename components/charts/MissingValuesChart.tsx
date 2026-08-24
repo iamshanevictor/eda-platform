@@ -97,7 +97,7 @@ export function MissingValuesChart({ missingValues, totalRecords }: MissingValue
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(value: number) => [value.toLocaleString(), 'Count']}
+                  formatter={(value) => [Number(value ?? 0).toLocaleString(), 'Count']}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -122,10 +122,13 @@ export function MissingValuesChart({ missingValues, totalRecords }: MissingValue
                 />
                 <YAxis />
                 <Tooltip 
-                  formatter={(value: number, name: string) => [
-                    name === 'missing' ? `${value} (${((value / totalRecords) * 100).toFixed(1)}%)` : value,
-                    name === 'missing' ? 'Missing' : 'Present'
-                  ]}
+                  formatter={(value, name) => {
+                    const numericValue = Number(value ?? 0);
+                    return [
+                      name === 'missing' ? `${numericValue} (${((numericValue / totalRecords) * 100).toFixed(1)}%)` : numericValue,
+                      name === 'missing' ? 'Missing' : 'Present',
+                    ];
+                  }}
                   labelFormatter={(label, payload) => {
                     if (payload && payload[0]) {
                       return `Column: ${payload[0].payload.fullColumn}`;

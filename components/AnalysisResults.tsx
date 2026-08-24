@@ -28,10 +28,10 @@ interface AnalysisResultsProps {
     column_types: Record<string, string>;
     correlation_matrix: Record<string, Record<string, number>>;
   };
-  datasetData?: Record<string, unknown>[];
+  totalRows?: number;
 }
 
-export function AnalysisResults({ analysis, datasetData }: AnalysisResultsProps) {
+export function AnalysisResults({ analysis, totalRows }: AnalysisResultsProps) {
   const { summary_stats, missing_values, column_types } = analysis;
 
   const numericColumns = Object.entries(column_types)
@@ -79,10 +79,10 @@ export function AnalysisResults({ analysis, datasetData }: AnalysisResultsProps)
               </div>
               <div className="text-xs text-orange-600 dark:text-orange-400">Missing</div>
             </div>
-            {datasetData && (
+            {typeof totalRows === 'number' && (
               <div className="text-center p-2 bg-gray-50 dark:bg-gray-800 rounded">
                 <div className="font-semibold text-gray-600 dark:text-gray-400">
-                  {datasetData.length}
+                  {totalRows.toLocaleString()}
                 </div>
                 <div className="text-xs text-gray-600 dark:text-gray-400">Records</div>
               </div>

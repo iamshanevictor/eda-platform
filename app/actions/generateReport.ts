@@ -9,7 +9,7 @@ export interface ReportData {
     file_name: string;
     file_size: number;
     created_at: string;
-    data: Record<string, unknown>[];
+    row_count: number;
   };
   analysis: {
     summary_stats: Record<string, Record<string, number | string | { value: string; count: number }[]>>;
@@ -39,7 +39,7 @@ export async function generateReportData(datasetId: number): Promise<ReportData>
   // Fetch dataset
   const { data: dataset, error: datasetError } = await supabase
     .from('datasets')
-    .select('*')
+    .select('id, file_name, file_size, created_at, row_count')
     .eq('id', datasetId)
     .single();
 
@@ -54,7 +54,7 @@ export async function generateReportData(datasetId: number): Promise<ReportData>
   // Fetch analysis
   const { data: analysis, error: analysisError } = await supabase
     .from('dataset_analyses')
-    .select('*')
+    .select('summary_stats, missing_values, column_types, correlation_matrix')
     .eq('dataset_id', datasetId)
     .single();
 
@@ -76,9 +76,8 @@ export async function generateReportData(datasetId: number): Promise<ReportData>
   };
 }
 
-function generateInsights(dataset: { data: Record<string, unknown>[] }, analysis: { column_types: Record<string, string>; missing_values: Record<string, number>; correlation_matrix: Record<string, Record<string, number>> }) {
-  const data = dataset.data as Record<string, unknown>[];
-  const totalRecords = data.length;
+function generateInsights(dataset: { row_count: number }, analysis: { column_types: Record<string, string>; missing_values: Record<string, number>; correlation_matrix: Record<string, Record<string, number>> }) {
+  const totalRecords = dataset.row_count;
   const totalColumns = Object.keys(analysis.column_types).length;
   const numericColumns = Object.values(analysis.column_types).filter(type => type === 'numeric').length;
   const textColumns = Object.values(analysis.column_types).filter(type => type === 'text').length;

@@ -12,6 +12,7 @@ import { BarChart2, ScatterChart as ScatterIcon, Grid, AlertTriangle, Eye, EyeOf
 
 interface AdvancedChartsProps {
   data: Record<string, unknown>[];
+  totalRows: number;
   analysis: {
     summary_stats: Record<string, Record<string, number | string | { value: string; count: number }[]>>;
     missing_values: Record<string, number>;
@@ -20,7 +21,7 @@ interface AdvancedChartsProps {
   };
 }
 
-export function AdvancedCharts({ data, analysis }: AdvancedChartsProps) {
+export function AdvancedCharts({ data, totalRows, analysis }: AdvancedChartsProps) {
   const [visibleCharts, setVisibleCharts] = useState({
     histogram: true,
     scatter: true,
@@ -83,7 +84,7 @@ export function AdvancedCharts({ data, analysis }: AdvancedChartsProps) {
             Advanced Visualizations
           </CardTitle>
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            {data.length} records • {Object.keys(analysis.column_types).length} columns • {numericColumns.length} numeric
+            Deterministic sample: {data.length.toLocaleString()} of {totalRows.toLocaleString()} records • {Object.keys(analysis.column_types).length} columns • {numericColumns.length} numeric
           </div>
         </CardHeader>
         <CardContent className="pt-0">
@@ -95,6 +96,7 @@ export function AdvancedCharts({ data, analysis }: AdvancedChartsProps) {
                 variant={visibleCharts[key] ? "default" : "outline"}
                 size="sm"
                 onClick={() => toggleChart(key)}
+                aria-pressed={visibleCharts[key]}
                 className={`flex items-center gap-1 text-xs px-3 py-1 ${
                   visibleCharts[key] 
                     ? `bg-${color}-600 hover:bg-${color}-700 text-white` 
@@ -129,14 +131,14 @@ export function AdvancedCharts({ data, analysis }: AdvancedChartsProps) {
                 <div className="space-y-4">
                   {/* Column Selection for Single Histogram */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label id="histogram-column-label" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Select Column to Display:
                     </label>
                     <Select 
                       value={getSelectedHistogramColumn()} 
                       onValueChange={(value) => setSelectedHistogramColumn(value)}
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full" aria-labelledby="histogram-column-label">
                         <SelectValue placeholder="Select a column" />
                       </SelectTrigger>
                       <SelectContent>
@@ -179,14 +181,14 @@ export function AdvancedCharts({ data, analysis }: AdvancedChartsProps) {
                   {/* Column Selection for Single Scatter Plot */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label id="scatter-x-label" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         X-Axis Column:
                       </label>
                       <Select 
                         value={getSelectedScatterColumns().x} 
                         onValueChange={(value) => setSelectedScatterXColumn(value)}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full" aria-labelledby="scatter-x-label">
                           <SelectValue placeholder="Select X column" />
                         </SelectTrigger>
                         <SelectContent>
@@ -199,14 +201,14 @@ export function AdvancedCharts({ data, analysis }: AdvancedChartsProps) {
                       </Select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label id="scatter-y-label" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Y-Axis Column:
                       </label>
                       <Select 
                         value={getSelectedScatterColumns().y} 
                         onValueChange={(value) => setSelectedScatterYColumn(value)}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full" aria-labelledby="scatter-y-label">
                           <SelectValue placeholder="Select Y column" />
                         </SelectTrigger>
                         <SelectContent>
@@ -279,7 +281,7 @@ export function AdvancedCharts({ data, analysis }: AdvancedChartsProps) {
               <CardContent className="pt-0">
                 <MissingValuesChart 
                   missingValues={analysis.missing_values} 
-                  totalRecords={data.length}
+                  totalRecords={totalRows}
                 />
               </CardContent>
             </Card>

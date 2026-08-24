@@ -26,8 +26,8 @@ Supabase backup.
 `20260804000100_phase_2_security.sql`:
 
 - preserves all existing rows;
-- leaves legacy ownerless datasets inaccessible and exempt from automated
-  deletion until ownership is decided separately;
+- leaves legacy ownerless datasets inaccessible and assigns their existing
+  rows the same 24-hour expiry/cleanup behavior;
 - enables RLS and removes existing policies on all six public tables;
 - revokes Data API access to the four unused legacy tables;
 - permits anonymous authenticated users to read/delete only their own
@@ -47,6 +47,18 @@ Supabase backup.
   function's `expires_at` output parameter; and
 - reasserts that only `service_role` can execute the write function.
 
+`20260824000100_row_oriented_dataset_storage.sql`:
+
+- creates owner/expiry-protected ordered dataset rows and an authoritative row
+  count;
+- backfills and verifies every legacy row before clearing the legacy JSONB
+  payload;
+- keeps cleanup cascading and browser writes denied; and
+- updates the service-role upload RPC so dataset metadata, rows, analysis, and
+  quota completion remain atomic.
+
+Follow `ROW_STORAGE_DEPLOYMENT.md` for its verification and recovery checks.
+
 ## Apply and verify
 
 Apply with the Supabase CLI from a reviewed, linked environment. Do not apply
@@ -64,7 +76,9 @@ After application, verify with separate anonymous sessions:
 7. A manual `select public.purge_expired_demo_data();` succeeds from an
    administrator connection and is denied through the Data API.
 
-Only after these checks pass should the application deployment be promoted and
+Also complete the row-count/backfill/grant checks in
+`ROW_STORAGE_DEPLOYMENT.md`. Only after all checks pass and the developer gives
+explicit launch approval should the application deployment be promoted and
 `UPLOADS_ENABLED=true` be set.
 
 ## Safe recovery

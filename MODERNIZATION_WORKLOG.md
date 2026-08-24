@@ -80,7 +80,10 @@ Use these conservative limits first. They can be raised only after profiling the
 | Upload rate | 5 per hour per anonymous session, plus IP/platform protection | Conservative starting point; measure before increasing. |
 | Stored datasets per anonymous session | 5 active datasets | Bounds database/storage use until 24-hour cleanup runs. |
 
-Future expansion should move raw CSV files to Supabase Storage, store metadata/profiles separately, and process larger files through a bounded background job. Do not raise limits while complete datasets remain single JSONB rows fetched into memory.
+Current storage keeps ordered parsed rows separately from dataset metadata and
+profiles. Future expansion should move raw CSV files to Supabase Storage and
+process larger files through a bounded background job. Do not raise limits
+without profiling the row-oriented write/read path and synchronous analysis.
 
 ## Confirmed infrastructure findings — 2026-08-04
 
@@ -355,27 +358,36 @@ Phase 2 completion gate:
 
 ### Phase 3 — Dependency modernization and intentional removals
 
-Status: **Blocked on Phase 2 cloud validation**
+Status: **Complete in repository; cloud release acceptance deferred**
 
-Planned scope includes compatible Supabase packages, UI/chart packages, and removal of remaining unused dependencies. Tailwind 4 and PDF-library removal remain separate reviewable changes.
+Completed scope includes compatible Supabase/UI/chart/tooling updates and
+intentional raster-PDF dependency removal. Framework/ecosystem majors remain
+separate future decisions.
 
 ### Phase 4 — Statistical correctness and validation
 
-Status: **Blocked on earlier phases**
+Status: **Complete in repository**
 
-Planned scope includes row-aligned correlation, documented quantiles/standard deviation, robust type inference, bounded CSV validation, deterministic sampling, correct total-versus-sample calculations, and a reviewed Storage/background-processing design.
+Implemented row-aligned correlation, documented quartiles/deviation, robust
+type inference, deterministic sampling, and correct total-versus-sample
+calculations. The approved row-oriented migration is forward-only; a future
+Storage/background path remains optional expansion work.
 
 ### Phase 5 — Performance, UX, and reporting
 
-Status: **Blocked on earlier phases**
+Status: **Complete in repository; manual browser acceptance deferred**
 
-Planned scope includes eliminating whole-JSONB pagination, bounded processing, accessible states, and the approved print-first reporting design.
+Implemented bounded row pagination/sampling, accessible states and controls,
+responsive improvements, and print-first reporting.
 
 ### Phase 6 — Documentation and release
 
-Status: **Blocked on earlier phases**
+Status: **Complete under keep-production-disabled decision**
 
-Planned scope includes verified setup, architecture, environment classification, limits, retention/security documentation, deployment/rollback guidance, and a release checklist.
+Documentation now covers setup, architecture, environment classification,
+limits, statistics, storage, retention/security, deployment/recovery, and the
+release checklist. Production launch remains blocked on the explicitly deferred
+manual/cloud checks and developer approval.
 
 ## Official operational references
 
@@ -650,3 +662,39 @@ Append entries using this structure:
   resolves every release blocker and the developer explicitly approves launch.
 - Project state: T004 is `DONE`; T005 is `READY` with unchanged routing
   `GPT-5.6 Terra · Medium`, Validation Tier `V2`, Executor `DEVELOPER`.
+
+### 2026-08-24 — T005–T014 uninterrupted implementation batch
+
+- Dependency baseline: completed a bounded in-range update across Radix,
+  Supabase JS, Papa Parse, Recharts, Tailwind 3, PostCSS, ESLint 9, and related
+  types/tooling. Framework majors, Supabase SSR major, Tailwind 4, and
+  TypeScript major were not changed. Removed `html2canvas` and `jspdf` after
+  deleting the raster export path. Production dependency audit reports four
+  high advisories inherited through the current Next.js dependency tree with
+  no package-manager fix available; this is recorded rather than hidden.
+- Statistical semantics: replaced first-value/coercive inference with
+  whole-column Boolean/numeric/strict-ISO inference; adopted R-7 quartiles,
+  four-decimal output, row-aligned pairwise-complete Pearson correlation, and
+  deterministic evenly spaced samples. Golden/edge tests cover the contract.
+- Persistence: recorded the row-oriented design and added one forward-only,
+  transactional migration. It creates `dataset_rows`, backfills and verifies
+  counts before clearing legacy payloads, preserves owner/expiry RLS and
+  cleanup cascades, denies browser writes, and keeps upload persistence atomic.
+- Bounded consumers: data preview uses 100-row ordered pages, charts use a
+  deterministic sample capped at 1,000 rows, reports use authoritative row
+  counts plus stored analysis, and no consumer retrieves the legacy whole-row
+  JSONB payload.
+- Reporting and UX: reports now use browser Print/Save as PDF for searchable
+  output. Added print layout rules, authoritative record counts, accessible
+  tabs/toggles/dialog controls and status/error announcements, responsive data
+  controls, and a keyboard-scrollable correlation matrix.
+- Validation policy: the developer explicitly deferred manual/browser/cloud
+  acceptance. A clean `npm ci`, lint, type-check, all 29 tests, the Next.js
+  production build, and `git diff --check` passed. The production dependency
+  audit reports four high transitive advisories through the current Next.js
+  tree with no available npm fix.
+- Release decision: keep Production uploads disabled. Deferred manual gates
+  remain quota, final physical cleanup, grants/RPCs, monitoring/edge controls,
+  provider-side obsolete credential revocation, current Production 503,
+  owner/expiry/browser/network checks, responsive/keyboard checks, and short/
+  multi-page print checks. No cloud setting was changed by this batch.
