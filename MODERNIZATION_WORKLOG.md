@@ -1,12 +1,12 @@
 # EDA Platform Modernization Worklog
 
-Last updated: 2026-08-05 (Asia/Manila)
+Last updated: 2026-08-24 (Asia/Manila)
 
 ## Purpose
 
 This file is the persistent execution log for the EDA Platform modernization. It records product decisions, phase scope, verification results, completed commits, intentional behavior changes, deferred work, and the next approved step.
 
-`CODEX_MODERNIZATION_CONTEXT.md` remains the project-wide modernization context. This worklog tracks the actual phased execution against the current repository.
+`PROJECT_TASKS.md` is the Workflow V2 execution queue. This worklog preserves the detailed modernization history and operational evidence behind that queue.
 
 ## Working rules
 
@@ -25,15 +25,15 @@ This file is the persistent execution log for the EDA Platform modernization. It
 | Item | Status |
 |---|---|
 | Repository audit | Complete on 2026-08-03 |
-| Application changes | Phase 2 security/privacy implementation and first successful cloud upload complete; final cloud gates remain |
-| Current execution phase | Phase 2 cloud checkpoint — upload persistence corrected; UI redirect and remaining isolation/retention checks pending |
-| Phase 0 preflight evidence | Substantially complete; usage totals and exact policy expressions/grants remain open. User reports no visible/configured Cron/Integrations or Storage buckets. |
-| Next proposed phase | Finish Phase 2 cloud validation, restore production fail-closed settings, then request approval before Phase 3 |
+| Application changes | Phase 2 security/privacy implementation is merged on `master`; final cloud acceptance and cleanup gates remain |
+| Current execution phase | T004 — Phase 2 cloud security closeout; production remains fail-closed pending explicit launch approval |
+| Phase 0 preflight evidence | Superseded by the applied Phase 2 migration and recorded cloud checks; current unverified environment gates are tracked in T004 |
+| Next proposed phase | Complete T004, remove temporary preview exposure, record the keep-disabled or launch decision, then promote T005 |
 | Approval to implement Phase 0 | Approved and implemented on 2026-08-04 |
 | Approval to implement Phase 1 | Approved and implemented on 2026-08-04 |
 | Approval to implement Phase 2 locally | Approved on 2026-08-04; controlled cloud checkpoint subsequently approved and is in progress |
-| Implementation branch | `phase-2-cloud-checkpoint` |
-| Worktree at decision capture | Active Phase 2 branch based on `master` at `fc9baf3` |
+| Implementation branch | `master` |
+| Worktree at decision capture | `master` at `983b7c0`; Workflow V2 documentation is pending commit |
 
 ## Audit baseline
 
@@ -592,3 +592,31 @@ Append entries using this structure:
 - Post-merge cloud cleanup: remove both temporary Vercel preview hostnames from
   Turnstile and remove the Preview `UPLOADS_ENABLED=true` override. Keep
   production uploads disabled until the user explicitly approves public launch.
+
+### 2026-08-24 — T004 Workflow V2 cloud-evidence checkpoint
+
+- Repository state: Phase 2 is squash-merged on `master` at `983b7c0`; the old
+  `phase-2-cloud-checkpoint` branch text above is historical rather than the
+  current execution state.
+- Vercel evidence: `UPLOADS_ENABLED` has separate Sensitive entries scoped to
+  Preview and Production. Vercel cannot reveal their stored values, so their
+  effective values require deployed runtime checks; neither entry was edited.
+- Turnstile evidence: widget `eda-platform-public-demo` currently allows the
+  production hostname plus two temporary Vercel preview hostnames. No hostname
+  was removed because preview validation is not complete.
+- Preview reachability: both allowlisted preview deployments load `/upload`
+  and complete the Turnstile challenge. The first preview shows the older
+  upload copy; the second shows the Phase 2 closeout copy documenting the five
+  rolling-hour attempts and 30-second interval, so the second preview is the
+  current validation target.
+- Previously recorded evidence retained: owner upload/read, cross-session
+  denial, service-role-only write RPC access, redirect behavior, and an earlier
+  production HTTP 503 kill-switch check passed.
+- Still required: identify a working preview, validate active-dataset quota,
+  expiry hiding, scheduled physical cleanup, current cron/grant state,
+  monitoring and edge controls, provider-side Groq credential revocation, then
+  remove both temporary preview hostnames and the Preview upload override.
+- Launch state: production uploads remain unapproved and must stay fail-closed.
+- Next step: perform one disposable upload through the second/current preview
+  and confirm HTTP success plus the fresh `/data` redirect. Do not remove
+  either hostname until the remaining preview tests finish.
