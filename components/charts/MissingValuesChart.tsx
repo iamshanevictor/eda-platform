@@ -80,7 +80,7 @@ export function MissingValuesChart({ missingValues, totalRecords }: MissingValue
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
             Overall Data Completeness
           </h3>
-          <div className="h-64">
+          <div className="h-64" role="img" aria-label="Overall present and missing value proportions">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -109,7 +109,7 @@ export function MissingValuesChart({ missingValues, totalRecords }: MissingValue
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
             Missing Values by Column
           </h3>
-          <div className="h-64">
+          <div className="h-64" role="img" aria-label="Missing and present values by column">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData.barData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -156,6 +156,8 @@ export function MissingValuesChart({ missingValues, totalRecords }: MissingValue
               size="sm"
               onClick={() => setShowDetailedTable(!showDetailedTable)}
               className="flex items-center gap-1"
+              aria-expanded={showDetailedTable}
+              aria-controls="missing-values-details"
             >
               {showDetailedTable ? (
                 <>
@@ -202,26 +204,28 @@ export function MissingValuesChart({ missingValues, totalRecords }: MissingValue
           </div>
         </div>
 
-        {/* Detailed Table - Show by default for few columns, toggle for many */}
-        {(Object.keys(missingValues).length <= 5 || showDetailedTable) && (
+        <div id="missing-values-details">
+          {/* Detailed Table - Show by default for few columns, toggle for many */}
+          {(Object.keys(missingValues).length <= 5 || showDetailedTable) && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
+              <caption className="sr-only">Missing values by dataset column</caption>
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left p-2 font-medium">Column</th>
-                  <th className="text-right p-2 font-medium">Total Records</th>
-                  <th className="text-right p-2 font-medium">Present</th>
-                  <th className="text-right p-2 font-medium">Missing</th>
-                  <th className="text-right p-2 font-medium">Missing %</th>
-                  <th className="text-center p-2 font-medium">Status</th>
+                  <th scope="col" className="text-left p-2 font-medium">Column</th>
+                  <th scope="col" className="text-right p-2 font-medium">Total Records</th>
+                  <th scope="col" className="text-right p-2 font-medium">Present</th>
+                  <th scope="col" className="text-right p-2 font-medium">Missing</th>
+                  <th scope="col" className="text-right p-2 font-medium">Missing %</th>
+                  <th scope="col" className="text-center p-2 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {chartData.barData.map((row) => (
                   <tr key={row.fullColumn} className="border-b border-gray-100 dark:border-gray-800">
-                    <td className="p-2 font-medium" title={row.fullColumn}>
+                    <th scope="row" className="p-2 text-left font-medium" title={row.fullColumn}>
                       {row.fullColumn}
-                    </td>
+                    </th>
                     <td className="p-2 text-right">{totalRecords.toLocaleString()}</td>
                     <td className="p-2 text-right text-green-600 dark:text-green-400">
                       {row.present.toLocaleString()}
@@ -248,10 +252,10 @@ export function MissingValuesChart({ missingValues, totalRecords }: MissingValue
               </tbody>
             </table>
           </div>
-        )}
+          )}
 
-        {/* Compact View for Many Columns */}
-        {Object.keys(missingValues).length > 5 && !showDetailedTable && (
+          {/* Compact View for Many Columns */}
+          {Object.keys(missingValues).length > 5 && !showDetailedTable && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {chartData.barData.map((row) => (
               <div key={row.fullColumn} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded text-sm">
@@ -270,7 +274,8 @@ export function MissingValuesChart({ missingValues, totalRecords }: MissingValue
               </div>
             ))}
           </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

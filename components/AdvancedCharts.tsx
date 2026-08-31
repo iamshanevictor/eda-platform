@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -36,8 +36,11 @@ export function AdvancedCharts({ data, totalRows, analysis }: AdvancedChartsProp
   const [selectedScatterXColumn, setSelectedScatterXColumn] = useState<string>('');
   const [selectedScatterYColumn, setSelectedScatterYColumn] = useState<string>('');
 
-  const numericColumns = Object.keys(analysis.column_types).filter(
-    col => analysis.column_types[col] === 'numeric'
+  const numericColumns = useMemo(
+    () => Object.keys(analysis.column_types).filter(
+      col => analysis.column_types[col] === 'numeric'
+    ),
+    [analysis.column_types],
   );
 
   const toggleChart = (chartType: keyof typeof visibleCharts) => {
@@ -48,10 +51,10 @@ export function AdvancedCharts({ data, totalRows, analysis }: AdvancedChartsProp
   };
 
   const chartButtons = [
-    { key: 'histogram', label: 'Histograms', icon: BarChart2, color: 'blue' },
-    { key: 'scatter', label: 'Scatter Plots', icon: ScatterIcon, color: 'green' },
-    { key: 'correlation', label: 'Correlation', icon: Grid, color: 'purple' },
-    { key: 'missing', label: 'Missing Values', icon: AlertTriangle, color: 'red' }
+    { key: 'histogram', label: 'Histograms', icon: BarChart2, activeClass: 'bg-blue-600 hover:bg-blue-700' },
+    { key: 'scatter', label: 'Scatter Plots', icon: ScatterIcon, activeClass: 'bg-green-600 hover:bg-green-700' },
+    { key: 'correlation', label: 'Correlation', icon: Grid, activeClass: 'bg-purple-600 hover:bg-purple-700' },
+    { key: 'missing', label: 'Missing Values', icon: AlertTriangle, activeClass: 'bg-red-600 hover:bg-red-700' }
   ] as const;
 
   // Removed hasManyNumericColumns as we now always show dropdowns for single chart selection
@@ -90,18 +93,14 @@ export function AdvancedCharts({ data, totalRows, analysis }: AdvancedChartsProp
         <CardContent className="pt-0">
           {/* Chart Toggle Controls */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {chartButtons.map(({ key, label, icon: Icon, color }) => (
+            {chartButtons.map(({ key, label, icon: Icon, activeClass }) => (
               <Button
                 key={key}
                 variant={visibleCharts[key] ? "default" : "outline"}
                 size="sm"
                 onClick={() => toggleChart(key)}
                 aria-pressed={visibleCharts[key]}
-                className={`flex items-center gap-1 text-xs px-3 py-1 ${
-                  visibleCharts[key] 
-                    ? `bg-${color}-600 hover:bg-${color}-700 text-white` 
-                    : ''
-                }`}
+                className={visibleCharts[key] ? `${activeClass} text-white` : ''}
               >
                 {visibleCharts[key] ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
                 <Icon className="h-3 w-3" />
@@ -119,7 +118,7 @@ export function AdvancedCharts({ data, totalRows, analysis }: AdvancedChartsProp
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
         {/* Histogram Charts */}
         {visibleCharts.histogram && (
-          <Card className="flex flex-col h-full min-h-[500px]">
+          <Card className="flex min-h-[420px] h-full flex-col sm:min-h-[500px]">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
                 <BarChart2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -168,7 +167,7 @@ export function AdvancedCharts({ data, totalRows, analysis }: AdvancedChartsProp
 
         {/* Scatter Plots */}
         {visibleCharts.scatter && (
-          <Card className="flex flex-col h-full min-h-[500px]">
+          <Card className="flex min-h-[420px] h-full flex-col sm:min-h-[500px]">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
                 <ScatterIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
@@ -179,7 +178,7 @@ export function AdvancedCharts({ data, totalRows, analysis }: AdvancedChartsProp
               {numericColumns.length >= 2 ? (
                 <div className="space-y-4">
                   {/* Column Selection for Single Scatter Plot */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
                       <label id="scatter-x-label" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         X-Axis Column:

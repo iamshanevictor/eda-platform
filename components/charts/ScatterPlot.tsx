@@ -32,10 +32,10 @@ export function ScatterPlot({ data, numericColumns, maxPlots = 6, singlePlot }: 
       const { xColumn, yColumn } = singlePlot;
       
       const plotData = sampledData
-        .map(row => ({
+        .map((row, index) => ({
           x: Number(row[xColumn]),
           y: Number(row[yColumn]),
-          index: sampledData.indexOf(row)
+          index,
         }))
         .filter(point => !isNaN(point.x) && !isNaN(point.y) && isFinite(point.x) && isFinite(point.y));
 
@@ -64,10 +64,10 @@ export function ScatterPlot({ data, numericColumns, maxPlots = 6, singlePlot }: 
           const yColumn = columnsToUse[j];
           
           const plotData = sampledData
-            .map(row => ({
+            .map((row, index) => ({
               x: Number(row[xColumn]),
               y: Number(row[yColumn]),
-              index: sampledData.indexOf(row)
+              index,
             }))
             .filter(point => !isNaN(point.x) && !isNaN(point.y) && isFinite(point.x) && isFinite(point.y));
 
@@ -124,7 +124,7 @@ export function ScatterPlot({ data, numericColumns, maxPlots = 6, singlePlot }: 
             </div>
           </div>
           
-          <div className="h-64">
+          <div className="h-64" role="img" aria-label={`Scatter plot of ${plot.xColumn} versus ${plot.yColumn}`}>
             <ResponsiveContainer width="100%" height="100%">
               <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" />

@@ -102,7 +102,11 @@ export function HistogramChart({ data, numericColumns, maxColumns = 4 }: Histogr
             </div>
           </div>
           
-          <div className="h-64">
+          <div
+            className="h-64"
+            role="img"
+            aria-label={`Histogram showing the distribution of ${column}`}
+          >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={histogram} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <XAxis 

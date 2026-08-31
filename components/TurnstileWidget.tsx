@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface TurnstileApi {
   render(
@@ -34,6 +34,7 @@ export function TurnstileWidget({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const [challengeError, setChallengeError] = useState<string | null>(null);
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   const renderWidget = useCallback(() => {
@@ -49,15 +50,25 @@ export function TurnstileWidget({
       sitekey: siteKey,
       action: "upload",
       theme: "auto",
-      callback: onToken,
-      "expired-callback": () => onToken(""),
-      "error-callback": () => onToken(""),
+      callback: (token) => {
+        setChallengeError(null);
+        onToken(token);
+      },
+      "expired-callback": () => {
+        setChallengeError("The security challenge expired. Complete it again to upload.");
+        onToken("");
+      },
+      "error-callback": () => {
+        setChallengeError("The security challenge could not load. Refresh the page and try again.");
+        onToken("");
+      },
     });
   }, [onToken, siteKey]);
 
   useEffect(() => {
     if (widgetIdRef.current && window.turnstile) {
       window.turnstile.reset(widgetIdRef.current);
+      setChallengeError(null);
       onToken("");
     }
   }, [onToken, resetKey]);
@@ -86,6 +97,11 @@ export function TurnstileWidget({
         onReady={renderWidget}
       />
       <div ref={containerRef} aria-label="Upload security challenge" />
+      {challengeError && (
+        <p className="mt-2 text-sm text-red-700 dark:text-red-300" role="alert">
+          {challengeError}
+        </p>
+      )}
     </>
   );
 }

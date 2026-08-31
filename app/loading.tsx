@@ -1,7 +1,8 @@
 export default function Loading() {
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="animate-pulse">
+    <div className="container mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12" role="status" aria-live="polite" aria-label="Loading page">
+      <span className="sr-only">Loading page…</span>
+      <div className="animate-pulse" aria-hidden="true">
         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
         

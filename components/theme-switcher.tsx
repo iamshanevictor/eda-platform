@@ -27,7 +27,7 @@ const ThemeSwitcher = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size={"sm"}>
+        <Button variant="ghost" size="icon" aria-label="Choose color theme" title="Choose color theme">
           {theme === "light" ? (
             <Sun
               key="light"
@@ -49,7 +49,7 @@ const ThemeSwitcher = () => {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-content" align="start">
+      <DropdownMenuContent className="w-content" align="end">
         <DropdownMenuRadioGroup
           value={theme}
           onValueChange={(e) => setTheme(e)}

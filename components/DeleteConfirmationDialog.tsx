@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trash2, AlertTriangle, X } from 'lucide-react';
+import { AccessibleModal } from '@/components/ui/accessible-modal';
 
 interface DeleteConfirmationDialogProps {
   isOpen: boolean;
@@ -19,14 +20,18 @@ export function DeleteConfirmationDialog({
   datasetName,
   isDeleting = false
 }: DeleteConfirmationDialogProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md">
+    <AccessibleModal
+      isOpen={isOpen}
+      onClose={isDeleting ? () => {} : onClose}
+      labelledBy="delete-dataset-title"
+      describedBy="delete-dataset-description"
+      panelClassName="max-w-md"
+    >
+      <Card className="border-0 shadow-none">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-red-600">
+            <CardTitle id="delete-dataset-title" className="flex items-center gap-2 text-red-600 dark:text-red-400">
               <AlertTriangle className="h-5 w-5" />
               Delete Dataset
             </CardTitle>
@@ -36,6 +41,7 @@ export function DeleteConfirmationDialog({
               onClick={onClose}
               disabled={isDeleting}
               className="h-8 w-8 p-0"
+              aria-label="Close delete confirmation"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -43,13 +49,13 @@ export function DeleteConfirmationDialog({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <p className="text-gray-700">
+            <p id="delete-dataset-description" className="text-gray-700 dark:text-gray-300">
               Are you sure you want to delete this dataset?
             </p>
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="font-medium text-red-800">{datasetName}</p>
+            <div className="rounded-md border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950/40">
+              <p className="break-all font-medium text-red-800 dark:text-red-200">{datasetName}</p>
             </div>
-            <div className="text-sm text-gray-600 space-y-1">
+            <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
               <p>This action will permanently delete:</p>
               <ul className="list-disc list-inside ml-4 space-y-1">
                 <li>The dataset and all its data</li>
@@ -76,7 +82,7 @@ export function DeleteConfirmationDialog({
             >
               {isDeleting ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></div>
                   Deleting...
                 </>
               ) : (
@@ -89,6 +95,6 @@ export function DeleteConfirmationDialog({
           </div>
         </CardContent>
       </Card>
-    </div>
+    </AccessibleModal>
   );
 }

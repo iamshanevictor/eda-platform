@@ -10,6 +10,7 @@ import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog'
 import { deleteDataset } from '@/app/actions/deleteDataset';
 import { getDatasetData, getDatasetSample } from '@/app/actions/getDatasetData';
 import { Loader2, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 
 interface Dataset {
   id: number;
@@ -38,12 +39,13 @@ export function OptimizedDatasetTabs({ datasets }: OptimizedDatasetTabsProps) {
   const [activeDatasetId, setActiveDatasetId] = useState<number | null>(
     datasets.length > 0 ? datasets[0].id : null
   );
+  const [visibleDatasets, setVisibleDatasets] = useState(datasets);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [datasetToDelete, setDatasetToDelete] = useState<DatasetWithAnalysis | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const activeDataset = datasets.find(d => d.id === activeDatasetId);
+  const activeDataset = visibleDatasets.find(d => d.id === activeDatasetId);
 
   const handleDeleteClick = (dataset: DatasetWithAnalysis) => {
     setDeleteError(null);
@@ -64,7 +66,8 @@ export function OptimizedDatasetTabs({ datasets }: OptimizedDatasetTabsProps) {
       const result = await deleteDataset(datasetToDelete.id);
       if (result.success) {
         // Remove from local state
-        const updatedDatasets = datasets.filter(d => d.id !== datasetToDelete.id);
+        const updatedDatasets = visibleDatasets.filter(d => d.id !== datasetToDelete.id);
+        setVisibleDatasets(updatedDatasets);
         if (updatedDatasets.length > 0) {
           setActiveDatasetId(updatedDatasets[0].id);
         } else {
@@ -74,22 +77,50 @@ export function OptimizedDatasetTabs({ datasets }: OptimizedDatasetTabsProps) {
         setDatasetToDelete(null);
       } else {
         setDeleteError(`Failed to delete dataset: ${result.message}`);
+        setDeleteDialogOpen(false);
+        setDatasetToDelete(null);
       }
     } catch (error) {
       console.error('Error deleting dataset:', error);
       setDeleteError('An error occurred while deleting the dataset');
+      setDeleteDialogOpen(false);
+      setDatasetToDelete(null);
     } finally {
       setIsDeleting(false);
     }
   };
 
-  if (datasets.length === 0) {
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+
+    const lastIndex = visibleDatasets.length - 1;
+    const nextIndex = event.key === 'Home'
+      ? 0
+      : event.key === 'End'
+        ? lastIndex
+        : event.key === 'ArrowRight'
+          ? (index + 1) % visibleDatasets.length
+          : (index - 1 + visibleDatasets.length) % visibleDatasets.length;
+    const nextDataset = visibleDatasets[nextIndex];
+    setActiveDatasetId(nextDataset.id);
+    document.getElementById(`dataset-tab-${nextDataset.id}`)?.focus();
+  };
+
+  if (visibleDatasets.length === 0) {
     return (
       <Card>
-        <CardContent className="p-8 text-center">
-          <p className="text-gray-500 dark:text-gray-400">
-            No datasets uploaded yet. Go to the Upload page to add your first dataset.
+        <CardContent className="flex flex-col items-center px-6 py-12 text-center">
+          <div className="mb-4 rounded-full bg-blue-50 p-3 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+            <span className="text-xl" aria-hidden="true">↗</span>
+          </div>
+          <h2 className="text-xl font-semibold">No datasets yet</h2>
+          <p className="mt-2 max-w-md text-sm text-muted-foreground">
+            Upload a CSV to generate summary statistics, visualizations, and a printable report.
           </p>
+          <Button asChild className="mt-6">
+            <Link href="/upload">Upload your first CSV</Link>
+          </Button>
         </CardContent>
       </Card>
     );
@@ -103,10 +134,12 @@ export function OptimizedDatasetTabs({ datasets }: OptimizedDatasetTabsProps) {
           {deleteError}
         </div>
       )}
-      <div role="tablist" aria-label="Uploaded datasets" className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700">
-        {datasets.map((dataset) => (
+      <div className="overflow-x-auto border-b border-border pb-2">
+        <div role="tablist" aria-label="Uploaded datasets" className="flex min-w-max gap-2">
+        {visibleDatasets.map((dataset, index) => (
           <Button
             key={dataset.id}
+            id={`dataset-tab-${dataset.id}`}
             variant={activeDatasetId === dataset.id ? "default" : "outline"}
             size="sm"
             onClick={() => setActiveDatasetId(dataset.id)}
@@ -114,14 +147,17 @@ export function OptimizedDatasetTabs({ datasets }: OptimizedDatasetTabsProps) {
             role="tab"
             aria-selected={activeDatasetId === dataset.id}
             aria-controls={`dataset-panel-${dataset.id}`}
+            tabIndex={activeDatasetId === dataset.id ? 0 : -1}
+            onKeyDown={(event) => handleTabKeyDown(event, index)}
           >
-            <span className="truncate max-w-32">{dataset.file_name}</span>
+            <span className="max-w-48 truncate">{dataset.file_name}</span>
             <span className="text-xs opacity-70">({(dataset.file_size / 1024).toFixed(0)}KB)</span>
             {dataset.analysis && (
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              <span className="h-2 w-2 rounded-full bg-green-500" aria-hidden="true"></span>
             )}
           </Button>
         ))}
+        </div>
       </div>
 
       {/* Active Dataset Content */}
@@ -163,6 +199,7 @@ function OptimizedDatasetContent({
 
   // Load data lazily when component mounts or dataset changes
   useEffect(() => {
+    let cancelled = false;
     const loadData = async () => {
       setIsLoadingData(true);
       setDataError(null);
@@ -174,18 +211,23 @@ function OptimizedDatasetContent({
           getDatasetData(dataset.id, 1, pageSize),
           getDatasetSample(dataset.id, 1000),
         ]);
-        setDatasetData(page.data);
-        setSampleData(sample);
-        setTotalRows(page.totalRows);
-        setHasMoreData(page.hasMore);
+        if (!cancelled) {
+          setDatasetData(page.data);
+          setSampleData(sample);
+          setTotalRows(page.totalRows);
+          setHasMoreData(page.hasMore);
+        }
       } catch {
-        setDataError('Dataset rows are unavailable or have expired.');
+        if (!cancelled) setDataError('Dataset rows are unavailable or have expired.');
       } finally {
-        setIsLoadingData(false);
+        if (!cancelled) setIsLoadingData(false);
       }
     };
 
     loadData();
+    return () => {
+      cancelled = true;
+    };
   }, [dataset.id, dataset.row_count]);
 
   const loadDataPage = async (nextPage: number) => {
@@ -212,6 +254,7 @@ function OptimizedDatasetContent({
     <div
       id={`dataset-panel-${dataset.id}`}
       role="tabpanel"
+      aria-labelledby={`dataset-tab-${dataset.id}`}
       aria-busy={isLoadingData}
       className="space-y-4"
     >
@@ -219,8 +262,8 @@ function OptimizedDatasetContent({
       <Card>
         <CardHeader>
           <CardTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <span className="truncate">{dataset.file_name}</span>
-            <div className="flex items-center space-x-2">
+            <span className="break-all">{dataset.file_name}</span>
+            <div className="flex flex-wrap items-center gap-2">
               {dataset.analysis && (
                 <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 text-xs rounded-full">
                   Analyzed
@@ -241,11 +284,11 @@ function OptimizedDatasetContent({
               </Button>
             </div>
           </CardTitle>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Uploaded: {new Date(dataset.created_at).toLocaleString()} | 
-            Size: {(dataset.file_size / 1024).toFixed(2)} KB | 
-            Records: {totalRows.toLocaleString()}
-          </div>
+          <dl className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
+            <div><dt className="inline font-medium text-foreground">Uploaded:</dt> <dd className="inline">{new Date(dataset.created_at).toLocaleString()}</dd></div>
+            <div><dt className="inline font-medium text-foreground">Size:</dt> <dd className="inline">{(dataset.file_size / 1024).toFixed(2)} KB</dd></div>
+            <div><dt className="inline font-medium text-foreground">Records:</dt> <dd className="inline">{totalRows.toLocaleString()}</dd></div>
+          </dl>
         </CardHeader>
       </Card>
 
@@ -282,9 +325,9 @@ function OptimizedDatasetContent({
         <CardHeader>
           <CardTitle className="text-lg flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <span>Data Preview</span>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {totalRows > 0 && (
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-muted-foreground" aria-live="polite">
                   Showing {firstVisibleRow.toLocaleString()}–{lastVisibleRow.toLocaleString()} of {totalRows.toLocaleString()} records
                 </span>
               )}
@@ -325,8 +368,8 @@ function OptimizedDatasetContent({
               <span>Loading data...</span>
             </div>
           ) : (
-            <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md p-4 overflow-auto max-h-64">
-              <pre className="text-xs text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+            <div id="data-preview" role="region" aria-label={`Data page ${dataPage}`} tabIndex={0} className="max-h-80 overflow-auto rounded-md border border-gray-200 bg-gray-50 p-4 focus-visible:ring-2 focus-visible:ring-ring dark:border-gray-700 dark:bg-gray-900">
+              <pre className="whitespace-pre-wrap break-words text-xs text-gray-800 dark:text-gray-200">
                 {JSON.stringify(datasetData ?? [], null, 2)}
               </pre>
             </div>

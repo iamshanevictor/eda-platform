@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { OptimizedDatasetTabs } from '@/components/OptimizedDatasetTabs';
 import { getAnalysis } from '@/app/actions/analyzeData';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,15 +48,15 @@ export default async function DataPage() {
 
   if (loadFailed) {
     return (
-      <div className="container mx-auto p-4 sm:p-6 max-w-6xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+      <div className="container mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
             Data Viewer & EDA Analysis
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
             View uploaded CSV datasets with automated EDA analysis
           </p>
-        </div>
+        </header>
         
         <Card className="w-full">
           <CardHeader>
@@ -64,10 +66,13 @@ export default async function DataPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+            <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950/40">
               <p className="text-red-800 dark:text-red-200">
                 Your datasets could not be loaded. Please refresh and try again.
               </p>
+              <Button asChild variant="outline" className="mt-4">
+                <Link href="/data">Try again</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -89,15 +94,18 @@ export default async function DataPage() {
   );
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+    <div className="container mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <header className="mb-8">
+        <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">Private workspace</p>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
           Data Viewer & EDA Analysis
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
-          View uploaded CSV datasets with automated EDA analysis ({datasetsWithAnalysis.length} datasets)
+          {datasetsWithAnalysis.length === 0
+            ? 'Upload a CSV to create your first analysis.'
+            : `${datasetsWithAnalysis.length} ${datasetsWithAnalysis.length === 1 ? 'dataset' : 'datasets'} available in this browser session.`}
         </p>
-      </div>
+      </header>
 
       <OptimizedDatasetTabs datasets={datasetsWithAnalysis} />
     </div>

@@ -1,130 +1,82 @@
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { BarChart3, ShieldCheck, Upload } from 'lucide-react';
 
 export default function HomePage() {
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       {/* Hero Section */}
-      <div className="text-center py-12">
-        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-          EDA Platform
+      <section className="mx-auto max-w-4xl py-12 text-center sm:py-16" aria-labelledby="hero-title">
+        <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-blue-700 dark:text-blue-300">
+          Private, session-isolated analysis
+        </p>
+        <h1 id="hero-title" className="mb-6 text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
+          Understand your CSV in minutes
         </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
-          Upload, analyze, and visualize your CSV data with our powerful Exploratory Data Analysis platform. 
-          Get insights from your data in minutes.
+        <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-300 sm:text-xl">
+          Upload a bounded CSV to explore summary statistics, missing values,
+          correlations, and visualizations without sending your dataset to an AI provider.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild size="lg">
             <Link href="/upload">
-              Upload CSV Files
+              Upload a CSV
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg">
             <Link href="/data">
-              View Data Analysis
+              View my analyses
             </Link>
           </Button>
         </div>
-      </div>
+      </section>
 
       {/* Features Section */}
-      <div className="grid md:grid-cols-3 gap-6 py-12">
-        <Card>
+      <section className="grid gap-6 py-10 md:grid-cols-3" aria-label="Platform features">
+        <Card className="h-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              📊 Data Upload
+              <Upload className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+              Bounded upload
             </CardTitle>
             <CardDescription>
-              Easily upload CSV files and parse them automatically
+              Upload files up to 2 MiB and get immediate, actionable validation feedback.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Bounded CSV uploads with server-side validation and automatic analysis.
-            </p>
-          </CardContent>
         </Card>
 
-        <Card>
+        <Card className="h-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              📈 EDA Analysis
+              <BarChart3 className="h-5 w-5 text-purple-600 dark:text-purple-400" aria-hidden="true" />
+              Focused EDA
             </CardTitle>
             <CardDescription>
-              Comprehensive exploratory data analysis with visualizations
+              Explore statistics, correlations, distributions, scatter plots, and data-quality signals.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Get detailed statistics, correlation matrices, histograms, scatter plots, and data quality insights.
-            </p>
-          </CardContent>
         </Card>
 
-        <Card>
+        <Card className="h-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              🚀 Fast & Secure
+              <ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
+              Private by default
             </CardTitle>
             <CardDescription>
-              Built with modern technologies for performance
+              Keep data isolated to your anonymous session with automatic 24-hour expiry.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Temporary session-isolated data with automatic 24-hour expiry.
-            </p>
-          </CardContent>
         </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="py-12">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-          Quick Actions
-        </h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle>Upload New Dataset</CardTitle>
-              <CardDescription>
-                Start by uploading a CSV file to begin your analysis
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full">
-                <Link href="/upload">
-                  Go to Upload
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle>Browse Existing Data</CardTitle>
-              <CardDescription>
-                View and explore your previously uploaded datasets
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild variant="outline" className="w-full">
-                <Link href="/data">
-                  View Data
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      </section>
 
       {/* Footer */}
-      <div className="border-t border-gray-200 dark:border-gray-700 py-8 mt-12">
+      <footer className="mt-12 border-t border-gray-200 py-8 dark:border-gray-700">
         <div className="text-center text-gray-600 dark:text-gray-400">
           <p>© 2026 Shane Victor Bato-on. All rights reserved.</p>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }

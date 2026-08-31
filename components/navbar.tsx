@@ -3,9 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ThemeSwitcher } from '@/components/theme-switcher';
+import { Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 export function Navbar() {
   const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
     { href: '/', label: 'Home' },
@@ -14,8 +17,8 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="w-full border-b border-b-foreground/10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
+    <nav aria-label="Primary navigation" className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <div className="container mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo/Brand */}
           <div className="flex items-center space-x-8">
@@ -34,9 +37,10 @@ export function Navbar() {
                   key={item.href}
                   href={item.href}
                   prefetch={item.href === '/data' ? false : true}
+                  aria-current={pathname === item.href ? 'page' : undefined}
                   className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
                     pathname === item.href
-                      ? 'text-foreground'
+                      ? 'text-foreground underline decoration-2 underline-offset-8'
                       : 'text-foreground/60'
                   }`}
                 >
@@ -47,20 +51,32 @@ export function Navbar() {
           </div>
 
           {/* Right side - Theme switcher */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-1">
             <ThemeSwitcher />
+            <button
+              type="button"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:hidden"
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-navigation"
+              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            >
+              {mobileMenuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+            </button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden border-t border-foreground/10">
-          <div className="flex flex-col space-y-2 py-4">
+        <div id="mobile-navigation" hidden={!mobileMenuOpen} className="border-t border-border md:hidden">
+          <div className="flex flex-col gap-1 py-3">
             {navItems.map((item) => (
               <Link
                   key={item.href}
                   href={item.href}
                   prefetch={item.href === '/data' ? false : true}
-                className={`text-sm font-medium transition-colors hover:text-foreground/80 px-2 py-1 rounded-md ${
+                onClick={() => setMobileMenuOpen(false)}
+                aria-current={pathname === item.href ? 'page' : undefined}
+                className={`rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground ${
                   pathname === item.href
                     ? 'text-foreground bg-foreground/10'
                     : 'text-foreground/60'

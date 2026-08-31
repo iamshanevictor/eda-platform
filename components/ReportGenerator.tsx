@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ReportTemplate } from '@/components/ReportTemplate';
 import { generateReportData, ReportData } from '@/app/actions/generateReport';
 import { FileText, Printer, Loader2, Eye, X } from 'lucide-react';
+import { AccessibleModal } from '@/components/ui/accessible-modal';
 
 interface ReportGeneratorProps {
   datasetId: number;
@@ -61,8 +62,8 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-800">{error}</p>
+          <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950/40">
+            <p className="text-red-800 dark:text-red-200">{error}</p>
             <Button 
               onClick={handleGenerateReport} 
               className="mt-3"
@@ -111,7 +112,7 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
                 )}
               </Button>
             ) : (
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Button 
                   onClick={handlePrint}
                   disabled={isGenerating}
@@ -131,7 +132,7 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
       {reportData && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               Report Preview
               <Button
                 onClick={() => setIsModalOpen(true)}
@@ -158,12 +159,17 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
       )}
 
       {/* Full Report Modal */}
-      {isModalOpen && reportData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="report-preview-title">
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col">
+      {reportData && (
+        <AccessibleModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          labelledBy="report-preview-title"
+          describedBy="report-preview-description"
+          panelClassName="flex h-[min(90dvh,900px)] max-w-6xl flex-col"
+        >
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 id="report-preview-title" className="text-xl font-semibold text-gray-900 dark:text-white">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-200 p-4 dark:border-gray-700 sm:p-6">
+              <h2 id="report-preview-title" className="break-all text-lg font-semibold text-gray-900 dark:text-white sm:text-xl">
                 Full Report Preview - {datasetName}
               </h2>
               <Button
@@ -178,18 +184,18 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
             </div>
             
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-6">
               <div className="max-w-none">
                 <ReportTemplate reportData={reportData} />
               </div>
             </div>
             
             {/* Modal Footer */}
-            <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <p id="report-preview-description" className="text-sm text-gray-600 dark:text-gray-400">
                 Print this report or save it as a PDF from the browser print dialog.
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   onClick={() => setIsModalOpen(false)}
                   variant="outline"
@@ -206,8 +212,7 @@ export function ReportGenerator({ datasetId, datasetName }: ReportGeneratorProps
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
+        </AccessibleModal>
       )}
     </div>
   );
