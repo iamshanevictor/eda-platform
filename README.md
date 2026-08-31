@@ -1,177 +1,78 @@
 # EDA Platform
 
-A public anonymous demo for bounded exploratory analysis of CSV files. Each
-browser receives a temporary Supabase anonymous identity after passing
-Cloudflare Turnstile. Datasets are isolated by Row Level Security (RLS), become
-inaccessible after 24 hours, and are physically deleted by an hourly cleanup
-job.
+A bounded, anonymous CSV exploratory-data-analysis demo. It computes summary
+statistics, data-quality signals, correlations, and charts without sending
+dataset content to an AI provider.
 
-The application does not include an AI chatbot and does not send dataset
-content to an external AI provider.
+Each visitor receives a temporary Supabase anonymous identity after completing
+Cloudflare Turnstile. Data is owner-isolated by Row Level Security, expires
+after 24 hours, and is cleaned up by a scheduled database job.
 
-## Supported stack
+## Stack
 
-- Node.js 24.x and npm 11.x
-- Next.js 16.2 and React 19.2
-- TypeScript and Tailwind CSS 3.4
+- Next.js 16.2, React 19.2, TypeScript, and Tailwind CSS 3.4
 - Supabase Auth and PostgreSQL
-- Papa Parse and Recharts
 - Cloudflare Turnstile
+- Papa Parse, Recharts, and browser print output
+- Node.js 24.x and npm 11.x
 
-Use npm as the only package manager. The required versions are recorded in
-`package.json`, `package-lock.json`, and `.nvmrc`.
+Use npm only. The supported versions are declared in [`.nvmrc`](.nvmrc) and
+[`package.json`](package.json).
 
-## Public-demo limits
+## Quick start
 
-| Boundary | Limit |
-|---|---:|
-| CSV file size | 2 MiB |
-| Rows | 10,000 |
-| Columns | 100 |
-| Total cells | 500,000 |
-| Header length | 128 characters |
-| Cell length | 10,000 characters |
-| Stored parsed JSON | 8 MiB |
-| Numeric columns used for correlation | 30 |
-| Upload attempts | 5 per anonymous identity per hour |
-| Active datasets | 5 per anonymous identity |
-| Processing reservation | 1 per identity per 30 seconds |
-| Application processing deadline | 18 seconds within a 20-second route limit |
-| Retention | Hidden at 24 hours; hourly physical cleanup |
-
-These limits protect free Vercel and Supabase capacity. Raising them requires
-profiling the row-oriented storage and synchronous analysis path first.
-
-## Local setup
-
-1. Install the declared runtime and dependencies:
-
-   ```powershell
-   npm ci
-   ```
-
-2. Copy `.env.example` to `.env.local` and set:
-
-   | Variable | Visibility | Purpose |
-   |---|---|---|
-   | `NEXT_PUBLIC_SUPABASE_URL` | Public | Supabase project URL |
-   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` | Public | Supabase publishable/anon key |
-   | `SUPABASE_SECRET_KEY` | Server-only secret | Invokes bounded write/quota RPCs after verification |
-   | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Public | Turnstile widget key |
-   | `TURNSTILE_SECRET_KEY` | Server-only secret | Verifies upload challenges for existing sessions |
-   | `UPLOADS_ENABLED` | Server-only | Emergency upload kill switch; only `true` enables uploads |
-
-   Never prefix the service-role or Turnstile secret with `NEXT_PUBLIC_`.
-   Never log or commit their values.
-   A legacy `SUPABASE_SERVICE_ROLE_KEY` is accepted temporarily, but current
-   Supabase `sb_secret_...` keys are preferred.
-
-3. Start the development server:
-
-   ```powershell
-   npm run dev
-   ```
-
-4. Open <http://localhost:3000>.
-
-Cloudflare provides test keys for automated/local testing. Use production keys
-only with reviewed hostname restrictions.
-
-## Database and Auth setup
-
-The repository uses versioned migrations instead of dashboard-authored demo
-policies. Apply them in filename order:
-
-```text
-supabase/migrations/20260804000100_phase_2_security.sql
-supabase/migrations/20260805000100_phase_2_fix_upload_expiry_reference.sql
-supabase/migrations/20260824000100_row_oriented_dataset_storage.sql
+```powershell
+npm ci
+Copy-Item .env.example .env.local
+npm run dev
 ```
 
-Before applying it, follow
-[`supabase/PHASE_2_DEPLOYMENT.md`](supabase/PHASE_2_DEPLOYMENT.md). The migration
-must be tested against the target schema and applied during a controlled cloud
-checkpoint with uploads disabled.
-
-Required Supabase Auth settings:
-
-- enable anonymous sign-ins;
-- configure Turnstile CAPTCHA for Auth;
-- disable unused email/password signup for this anonymous-only demo;
-- keep the service-role key server-only.
-
-Do not recreate the former public `FOR ALL` policies. Anonymous identities use
-the `authenticated` Postgres role; ownership and expiry are enforced by RLS.
-
-## Runtime data flow
-
-1. The browser selects a CSV and completes the Turnstile widget.
-2. `POST /api/uploads` rejects disabled, cross-origin, oversized, or malformed
-   requests before persistence.
-3. Supabase verifies Turnstile while creating the first anonymous identity. For
-   an existing identity, the application verifies the single-use token directly
-   with Cloudflare Siteverify, including hostname and action.
-4. A server-only Supabase client reserves an atomic quota slot.
-5. The server decodes UTF-8, parses and validates CSV structure, bounds JSON
-   expansion, and computes EDA results.
-6. A service-role-only database function revalidates the reservation/envelope
-   and atomically inserts dataset metadata, ordered rows, and analysis.
-7. Reads and deletes use the visitor's anonymous session and owner-based RLS.
-   Pages query at most 100 ordered rows, charts use an evenly spaced sample of
-   at most 1,000 rows, and reports read only metadata plus stored analysis.
-8. RLS hides data at 24 hours; Supabase Cron removes expired datasets and later
-   removes orphaned anonymous Auth users.
-
-Rows are stored individually in `dataset_rows`; `datasets.row_count` is the
-authoritative total. The legacy dataset JSONB column remains empty for safe
-forward compatibility. Upload parsing and analysis are still synchronous and
-bounded, so this remains a small-file demo rather than a large-data platform.
+Set the required values in `.env.local`, then open <http://localhost:3000>.
+The complete instructions, including safe local upload testing, are in
+[Setup](docs/SETUP.md).
 
 ## Commands
 
 ```powershell
+npm run dev
 npm run lint
 npm run typecheck
 npm test
 npm run build
 ```
 
-CI runs a clean install followed by all four commands. Production builds need
-non-secret build-time values for the public Supabase and Turnstile variables.
+GitHub Actions runs a clean install followed by linting, type-checking, tests,
+and the production build on pull requests and `master`.
 
-## Reports
+## Documentation
 
-Reports are rendered as print-friendly HTML. Use the browser's Print dialog to
-save a searchable/selectable PDF. Pixel-identical PDF output is not a goal.
+- [Architecture](docs/ARCHITECTURE.md)
+- [Setup](docs/SETUP.md)
+- [Development workflow](docs/DEVELOPMENT.md)
+- [Testing](docs/TESTING.md)
+- [Deployment](docs/DEPLOYMENT.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Security notes](docs/SECURITY_NOTES.md)
+- [Project structure](docs/PROJECT_STRUCTURE.md)
+- [Contributing](.github/CONTRIBUTING.md)
+- [Security reporting](.github/SECURITY.md)
 
-## Security operations
+The root also retains project records that are part of the active development
+workflow: [`PROJECT_TASKS.md`](PROJECT_TASKS.md),
+[`MODERNIZATION_WORKLOG.md`](MODERNIZATION_WORKLOG.md),
+[`DECISION.md`](DECISION.md), and
+[`AI_DEVELOPMENT_WORKFLOW_V2.md`](AI_DEVELOPMENT_WORKFLOW_V2.md).
 
-- Keep `UPLOADS_ENABLED=false` until the migration, Auth CAPTCHA, Turnstile,
-  cross-session isolation tests, and production deployment checks pass.
-- Delete the obsolete external-AI credential from Vercel; the application no
-  longer reads or needs it.
-- Protect preview deployments and configure available Vercel bot/firewall
-  controls. Application quotas do not replace edge DDoS/bot controls.
-- Monitor Vercel usage, Supabase database size/egress/Auth users, quota errors,
-  and the cleanup job. Use conservative alerts at 50%, 75%, and 90%.
-- During an incident, disable uploads first. Do not weaken RLS as a rollback.
+## Release safety
 
-## Analysis semantics
+The checked-in environment sample keeps `UPLOADS_ENABLED=false`; the route only
+accepts uploads when the deployed value is exactly `true`. Confirm the actual
+Vercel environment scope and the cloud checklist before changing that value.
+Migrations and controlled cloud checks are documented in
+[`supabase/PHASE_2_DEPLOYMENT.md`](supabase/PHASE_2_DEPLOYMENT.md) and
+[`supabase/ROW_STORAGE_DEPLOYMENT.md`](supabase/ROW_STORAGE_DEPLOYMENT.md).
 
-Types are inferred from every non-missing value. Boolean detection precedes
-numeric detection; numeric columns require finite numeric values; and dates
-require ISO calendar dates or timezone-qualified datetimes. Statistics use
-population standard deviation and R-7 interpolated quartiles. Pearson
-correlation is pairwise-complete and row-aligned; insufficient or constant
-pairs return `0`, numeric diagonals return `1`, and correlation work is capped
-at the first 30 numeric columns. Display values are rounded to four decimals.
-The complete contract is recorded in `DECISION.md`.
+## License
 
-## Release status
-
-Production uploads remain disabled. Repository implementation and automated
-quality checks do not replace the deferred cloud/browser release checklist:
-quota, grants, physical cleanup, monitoring/edge controls, obsolete provider
-credential revocation, current production HTTP 503, responsive/keyboard checks,
-and short/multi-page print checks must be confirmed before explicit launch
-approval.
+No license file is currently included. Do not assume permission to reuse or
+redistribute the project until the owner adds one.

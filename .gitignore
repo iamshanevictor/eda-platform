@@ -42,3 +42,6 @@ yarn-error.log*
 next-env.d.ts
 
 /CODEX_MODERNIZATION_CONTEXT.md
+
+# Supabase CLI stores linked-project and service metadata locally.
+/supabase/.temp/
