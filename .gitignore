@@ -45,3 +45,8 @@ next-env.d.ts
 
 # Supabase CLI stores linked-project and service metadata locally.
 /supabase/.temp/
+
+# Local teaching materials and generated handouts, outside the application
+/examples/
+/outputs/
+/tools/

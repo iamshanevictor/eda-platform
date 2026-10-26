@@ -15,6 +15,7 @@ supabase/
   *_DEPLOYMENT.md            Controlled cloud deployment instructions
 .github/workflows/           CI quality workflow
 docs/                        Developer handoff documentation
+  project-records/           Active task workflow, decisions, and project history
 ```
 
 ## Placement rules
@@ -31,8 +32,11 @@ docs/                        Developer handoff documentation
 - Keep operational procedures next to Supabase resources; keep onboarding and
   contributor documentation in `docs/` and `.github/`.
 
-## Root records retained intentionally
+## Project records
 
-`PROJECT_TASKS.md`, `MODERNIZATION_WORKLOG.md`, `DECISION.md`, and
-`AI_DEVELOPMENT_WORKFLOW_V2.md` remain at the root because they are live project
-workflow and decision records. They are not temporary notes.
+The active [task queue](project-records/PROJECT_TASKS.md),
+[development workflow](project-records/AI_DEVELOPMENT_WORKFLOW_V2.md),
+[technical decisions](project-records/DECISION.md), and
+[modernization history](project-records/MODERNIZATION_WORKLOG.md) live in
+`docs/project-records/`. These records remain available for current work and
+historical context.

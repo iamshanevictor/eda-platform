@@ -72,5 +72,5 @@ RLS, grants, RPCs, and retention behavior.
 - Rows are stored individually, while `datasets.row_count` is authoritative.
   The legacy JSONB payload stays empty for forward compatibility.
 - Statistics and correlation behavior are deterministic. See
-  [`DECISION.md`](../DECISION.md) for the complete semantic contract.
+  [`DECISION.md`](project-records/DECISION.md) for the complete semantic contract.
 - Reports use browser Print/Save as PDF instead of raster/PDF generation.

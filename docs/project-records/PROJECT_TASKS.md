@@ -1,16 +1,16 @@
 # EDA Platform Project Tasks
 
-Last reconciled: 2026-08-24 (Asia/Manila)
+Last reconciled: 2026-09-29 (Asia/Manila)
 
-Workflow: `AI_DEVELOPMENT_WORKFLOW_V2.md`
+Workflow: `docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md`
 
 ## Migration Basis
 
-This task library migrates the active roadmap recorded in `MODERNIZATION_WORKLOG.md`; it does not restart the project. No earlier `PROJECT_TASKS.md` or task IDs existed, so IDs below were assigned once to the preserved phase history. Repository history and targeted source inspection establish that Phases 0 and 1 are complete, and that the Phase 2 repository implementation is merged. Remaining Phase 2 cloud/security acceptance is isolated as T004 instead of reopening T003.
+This task library migrates the active roadmap recorded in `docs/project-records/MODERNIZATION_WORKLOG.md`; it does not restart the project. No earlier `docs/project-records/PROJECT_TASKS.md` or task IDs existed, so IDs below were assigned once to the preserved phase history. Repository history and targeted source inspection establish that Phases 0 and 1 are complete, and that the Phase 2 repository implementation is merged. Remaining Phase 2 cloud/security acceptance is isolated as T004 instead of reopening T003.
 
 Evidence boundaries used for this reconciliation:
 
-- `MODERNIZATION_WORKLOG.md` for approved decisions, completed work, validation, and deferred phases.
+- `docs/project-records/MODERNIZATION_WORKLOG.md` for approved decisions, completed work, validation, and deferred phases.
 - `README.md`, `package.json`, `.github/workflows/ci.yml`, and the last eight commits for current runtime and merge state.
 - Targeted analysis, data-access, report, security, and migration files only.
 - No claim is made that an unrecorded cloud action is complete. Cloud gates without recorded evidence remain unfinished.
@@ -20,6 +20,9 @@ Evidence boundaries used for this reconciliation:
 - `DONE`: implementation and required recorded validation are complete. Do not reopen without contrary evidence.
 - `READY`: the single next required, unblocked task. Do not implement it during workflow migration.
 - `PLANNED`: valid future work blocked by dependencies.
+- `BLOCKED`: valid work that cannot proceed until an external constraint or missing decision is resolved.
+- `DEFERRED`: valid work intentionally postponed without being a current dependency.
+- `CANCELLED`: work intentionally abandoned; preserve the record and task ID.
 
 ## Quick Queue
 
@@ -43,6 +46,63 @@ Evidence boundaries used for this reconciliation:
 No task is `READY`: the requested development range is complete. Production
 launch remains a separate developer-controlled decision after the deferred
 manual/cloud checklist; it is not silently promoted or enabled.
+
+## Routing Policy for New Work
+
+Historical GPT-5.6 assignments below remain unchanged because every existing
+task is `DONE`. For T015 and later, use the phase-specific GPT-6 routing policy
+in `docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md`:
+
+- `GPT-6 Luna · Low/Medium` for predictable implementation, tests,
+  documentation, styling, repetitive edits, and cleanup.
+- `GPT-6 Sol · Low/Medium` for planning, decomposition, multi-file engineering,
+  stateful/domain logic, security, migrations, data integrity, and difficult
+  debugging.
+- `GPT-6 Astra · Low` only when targeted Sol analysis cannot safely resolve a
+  genuine architectural, security, transactional, concurrency, migration, or
+  data-integrity conflict; use Medium only if Low is insufficient.
+
+Route reasoning/planning, implementation, and validation/cleanup separately.
+De-escalate routine execution after a difficult decision is resolved. Use
+`GPT-5.6 Luna` or `GPT-5.6 Sol` only when the corresponding GPT-6 model is
+unavailable. New routing is `LOW` confidence when the task contract lacks
+enough documented requirements, dependencies, constraints, acceptance,
+validation, reversibility, or escalation evidence; do not compensate by
+scanning the whole codebase during task intake.
+
+## Future-Work Intake
+
+When there is no owner request or other repository-recognized evidence, leave
+the completed queue unchanged and report that planned work is complete.
+
+When the owner requests a feature, bug fix, redesign, migration, enhancement,
+or optimization that no existing task covers:
+
+1. Re-read the relevant sections of `docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md`, this queue,
+   the current project record, relevant requirements, `docs/project-records/DECISION.md`, and
+   architecture/operational documentation. Read `SESSION.md` only if it exists.
+2. Use documentation first. Inspect only targeted code when documentation is
+   insufficient to define a safe task contract.
+3. Continue after the highest existing ID (`T014` at this reconciliation).
+   Never reuse or rewrite a historical ID.
+4. Create one cohesive, independently testable task, or split genuine phases
+   such as architecture/decision, migration foundation, implementation,
+   integration/cutover, and acceptance. Do not create artificial microtasks.
+5. Set the first executable task to `READY`; use `PLANNED`, `BLOCKED`, or
+   `DEFERRED` for later work as appropriate.
+6. Before implementation, record why the task exists, dependencies, relevant
+   requirements and decisions, `Inspect First`, likely and prohibited files,
+   acceptance criteria, validation, executor, phase-specific routing,
+   escalation conditions, routing confidence, and a ready-to-copy
+   implementation prompt.
+7. Update only canonical state documents required by the repository. Do not
+   change `docs/project-records/DECISION.md` unless a genuine long-lived decision is made, and do not
+   create a Git commit unless repository instructions explicitly permit it.
+
+New tasks require evidence: an explicit owner request, verified defect,
+approved audit finding, approved architectural change, or another
+repository-recognized reason. A completed queue never permits future work to
+bypass this intake.
 
 ## Completed Work
 
@@ -76,7 +136,7 @@ Restore a reproducible runtime, quality commands, characterization tests, and CI
 
 ## Inspect First
 
-- `MODERNIZATION_WORKLOG.md` Phase 0 history
+- `docs/project-records/MODERNIZATION_WORKLOG.md` Phase 0 history
 - `package.json`
 - `.github/workflows/ci.yml`
 
@@ -120,7 +180,7 @@ T001 is complete. Do not reimplement it. Use its completion notes only as depend
 
 ## Completion Notes
 
-Completed 2026-08-04. Phase 0 commits and exact local validation are recorded in `MODERNIZATION_WORKLOG.md`; the workflow is now configured to run on pushes to `master`.
+Completed 2026-08-04. Phase 0 commits and exact local validation are recorded in `docs/project-records/MODERNIZATION_WORKLOG.md`; the workflow is now configured to run on pushes to `master`.
 
 # T002 — Migrate to Supported Next 16 / React 19 Conventions
 
@@ -152,7 +212,7 @@ Move the recovered baseline to supported Next 16 and React 19 conventions withou
 
 ## Inspect First
 
-- `MODERNIZATION_WORKLOG.md` Phase 1 history
+- `docs/project-records/MODERNIZATION_WORKLOG.md` Phase 1 history
 - `package.json`
 - `proxy.ts`
 - `next.config.ts`
@@ -229,7 +289,7 @@ Implement and merge the repository side of owner-isolated anonymous uploads, RLS
 
 ## Inspect First
 
-- `MODERNIZATION_WORKLOG.md` Phase 2 history
+- `docs/project-records/MODERNIZATION_WORKLOG.md` Phase 2 history
 - `app/api/uploads/route.ts`
 - `supabase/migrations/20260804000100_phase_2_security.sql`
 - `supabase/migrations/20260805000100_phase_2_fix_upload_expiry_reference.sql`
@@ -310,13 +370,13 @@ Complete the recorded Phase 2 environment checks, remove temporary preview expos
 ## Inspect First
 
 - `supabase/PHASE_2_DEPLOYMENT.md`
-- `MODERNIZATION_WORKLOG.md` sections `Phase 2 cloud checkpoint in progress`, `first successful cloud upload`, and `session-isolation closeout`
+- `docs/project-records/MODERNIZATION_WORKLOG.md` sections `Phase 2 cloud checkpoint in progress`, `first successful cloud upload`, and `session-isolation closeout`
 - `README.md` sections `Database and Auth setup` and `Security operations`
 
 ## Likely Files to Modify
 
-- `MODERNIZATION_WORKLOG.md`
-- `PROJECT_TASKS.md`
+- `docs/project-records/MODERNIZATION_WORKLOG.md`
+- `docs/project-records/PROJECT_TASKS.md`
 - `README.md` only if verified operational guidance changed
 
 ## Do Not Modify
@@ -333,7 +393,7 @@ Complete the recorded Phase 2 environment checks, remove temporary preview expos
 - [x] Both temporary preview hostnames are removed from Turnstile and the Preview `UPLOADS_ENABLED=true` override is removed after testing.
 - [x] The earlier production HTTP 503 evidence is retained and a keep-disabled decision is recorded; a current final 503 recheck remains a release blocker.
 - [x] Groq is removed from source and Vercel; provider-side credential revocation is recorded as an outstanding owner action without disclosing a secret.
-- [x] `MODERNIZATION_WORKLOG.md` reflects `master` rather than the merged Phase 2 branch.
+- [x] `docs/project-records/MODERNIZATION_WORKLOG.md` reflects `master` rather than the merged Phase 2 branch.
 - [x] T004 records concise evidence and the explicit keep-production-disabled decision.
 
 ## Validation Strategy
@@ -364,7 +424,7 @@ If validation fails, report only the failing check/command, the first/root failu
 ## Implementation Prompt
 
 ```text
-Read AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
+Read docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
 
 Implement task T004: Close Phase 2 Cloud Security Gates and Record the Launch Decision.
 
@@ -394,7 +454,7 @@ CONTEXT BOUNDARY
 
 Inspect first:
 - supabase/PHASE_2_DEPLOYMENT.md
-- the three final Phase 2 cloud entries in MODERNIZATION_WORKLOG.md
+- the three final Phase 2 cloud entries in docs/project-records/MODERNIZATION_WORKLOG.md
 - README.md security operations
 
 Do not scan the entire repository. Expand context only when current evidence requires it.
@@ -543,7 +603,7 @@ Report only the failing command and first/root error. For audit findings, report
 ## Implementation Prompt
 
 ```text
-Read AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
+Read docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
 
 Implement task T005: Audit and Safely Modernize Non-Framework Dependencies.
 
@@ -637,16 +697,16 @@ Record precise statistical semantics and representative golden cases before chan
 ## Inspect First
 
 - `README.md` section `Known analysis behavior`
-- `MODERNIZATION_WORKLOG.md` Phase 4 scope
+- `docs/project-records/MODERNIZATION_WORKLOG.md` Phase 4 scope
 - `lib/analysis/analyzeDataset.test.ts`
 - relevant functions in `lib/analysis/analyzeDataset.ts`
 - `app/actions/generateReport.ts` insight calculations
 
 ## Likely Files to Modify
 
-- `DECISION.md` (create because no decision record currently exists)
+- `docs/project-records/DECISION.md` (create because no decision record currently exists)
 - `lib/analysis/analyzeDataset.test.ts` for explicit golden/characterization cases that still pass before implementation
-- `PROJECT_TASKS.md` only for state transition
+- `docs/project-records/PROJECT_TASKS.md` only for state transition
 
 ## Do Not Modify
 
@@ -684,7 +744,7 @@ Report only the disputed definition or first failing golden case with its minima
 ## Implementation Prompt
 
 ```text
-Read AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
+Read docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
 
 Implement task T006: Specify Statistical Semantics and Golden Cases.
 
@@ -701,7 +761,7 @@ Specify intended analysis semantics and golden cases without changing production
 CONTEXT BOUNDARY
 Inspect first:
 - README.md known behavior
-- MODERNIZATION_WORKLOG.md Phase 4
+- docs/project-records/MODERNIZATION_WORKLOG.md Phase 4
 - lib/analysis/analyzeDataset.test.ts
 - only relevant functions in lib/analysis/analyzeDataset.ts
 - app/actions/generateReport.ts insight calculations
@@ -710,7 +770,7 @@ Do not scan the entire repository.
 REQUIREMENTS
 - define type inference, missingness, standard deviation, quantiles, correlation alignment, constants, rounding, deterministic sampling, and total-vs-sample semantics
 - distinguish current characterization from intended behavior
-- create DECISION.md because it is absent
+- create docs/project-records/DECISION.md because it is absent
 
 DO NOT MODIFY
 - production formulas, persistence, upload limits, UI, or reporting
@@ -739,7 +799,7 @@ Promote T007 only after validation and decision approval are confirmed.
 ## Completion Notes
 
 Completed 2026-08-24. The authoritative statistical, missing-value, rounding,
-correlation, and sampling contract is recorded in `DECISION.md` and covered by
+correlation, and sampling contract is recorded in `docs/project-records/DECISION.md` and covered by
 golden/edge tests.
 
 # T007 — Correct Type Inference and Summary Statistics
@@ -772,7 +832,7 @@ Implement approved type inference, missing-value handling, and summary-statistic
 
 ## Inspect First
 
-- `DECISION.md` statistical decision
+- `docs/project-records/DECISION.md` statistical decision
 - `lib/analysis/analyzeDataset.test.ts`
 - relevant column loop in `lib/analysis/analyzeDataset.ts`
 - `components/AnalysisResults.tsx`
@@ -825,7 +885,7 @@ Report only the first failing case, minimal input, and expected/actual statistic
 ## Implementation Prompt
 
 ```text
-Read AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
+Read docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
 
 Implement task T007: Correct Type Inference and Summary Statistics.
 
@@ -841,7 +901,7 @@ Implement the approved inference, missingness, deviation, and quantile behavior 
 
 CONTEXT BOUNDARY
 Inspect first:
-- DECISION.md statistical decision
+- docs/project-records/DECISION.md statistical decision
 - lib/analysis/analyzeDataset.test.ts
 - the relevant column loop in lib/analysis/analyzeDataset.ts
 - components/AnalysisResults.tsx
@@ -912,7 +972,7 @@ Implement row-aligned pairwise correlation and the approved deterministic bounde
 
 ## Inspect First
 
-- `DECISION.md` statistical decision
+- `docs/project-records/DECISION.md` statistical decision
 - correlation tests and function in `lib/analysis/analyzeDataset.test.ts` and `lib/analysis/analyzeDataset.ts`
 - `app/actions/getDatasetData.ts` sampling function
 - correlation consumers in `components/AdvancedCharts.tsx`, `components/charts/CorrelationHeatmap.tsx`, and `app/actions/generateReport.ts`
@@ -965,7 +1025,7 @@ Report only the first failing pair/sample fixture and minimal expected/actual ou
 ## Implementation Prompt
 
 ```text
-Read AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
+Read docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
 
 Implement task T008: Correct Correlation Alignment and Deterministic Sampling.
 
@@ -981,7 +1041,7 @@ Implement row-aligned correlations and approved deterministic bounded sampling.
 
 CONTEXT BOUNDARY
 Inspect first:
-- DECISION.md statistical decision
+- docs/project-records/DECISION.md statistical decision
 - correlation symbols/tests in lib/analysis/analyzeDataset.ts and .test.ts
 - sampling symbols in app/actions/getDatasetData.ts
 - only named correlation consumers
@@ -1054,16 +1114,16 @@ Produce an approved, implementation-ready migration design for bounded row-orien
 ## Inspect First
 
 - `README.md` runtime flow, limits, and known JSONB constraint
-- `MODERNIZATION_WORKLOG.md` Phase 4/5 storage scope
+- `docs/project-records/MODERNIZATION_WORKLOG.md` Phase 4/5 storage scope
 - relevant dataset table/function definitions in `supabase/migrations/20260804000100_phase_2_security.sql`
 - data reads in `app/actions/getDatasetData.ts`, `app/actions/generateReport.ts`, and `app/api/uploads/route.ts`
 - `supabase/PHASE_2_DEPLOYMENT.md` recovery constraints
 
 ## Likely Files to Modify
 
-- `DECISION.md`
+- `docs/project-records/DECISION.md`
 - a focused migration design document under `supabase/`
-- `PROJECT_TASKS.md` only for state transition
+- `docs/project-records/PROJECT_TASKS.md` only for state transition
 
 ## Do Not Modify
 
@@ -1100,7 +1160,7 @@ Report only the disputed invariant, missing evidence, or unresolved design choic
 ## Implementation Prompt
 
 ```text
-Read AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
+Read docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
 
 Implement task T009: Design the Row-Oriented Storage and Processing Migration.
 
@@ -1117,7 +1177,7 @@ Create an approved implementation-ready storage/processing migration design with
 CONTEXT BOUNDARY
 Inspect first:
 - README.md runtime flow/limits
-- MODERNIZATION_WORKLOG.md Phase 4/5 scope
+- docs/project-records/MODERNIZATION_WORKLOG.md Phase 4/5 scope
 - relevant dataset schema/functions in the Phase 2 migration
 - data reads in getDatasetData, generateReport, and uploads route
 - Phase 2 recovery guidance
@@ -1153,7 +1213,7 @@ Promote T010 only after I approve the design.
 
 ## Completion Notes
 
-Completed 2026-08-24. `DECISION.md` and
+Completed 2026-08-24. `docs/project-records/DECISION.md` and
 `supabase/ROW_STORAGE_DEPLOYMENT.md` record the row table, authoritative count,
 RLS/grants, atomic write, backfill, deployment, and recovery design.
 
@@ -1187,7 +1247,7 @@ Implement the approved forward migration and server write compatibility while pr
 
 ## Inspect First
 
-- approved storage decision/design in `DECISION.md` and `supabase/`
+- approved storage decision/design in `docs/project-records/DECISION.md` and `supabase/`
 - `supabase/migrations/20260804000100_phase_2_security.sql`
 - `supabase/migrations/20260805000100_phase_2_fix_upload_expiry_reference.sql`
 - `lib/security/retention-migration.test.ts`
@@ -1243,7 +1303,7 @@ Report only the failing command/check, first/root database error, affected migra
 ## Implementation Prompt
 
 ```text
-Read AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
+Read docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
 
 Implement task T010: Implement the Approved Storage Migration Safely.
 
@@ -1259,7 +1319,7 @@ Implement the approved forward migration and bounded server write compatibility 
 
 CONTEXT BOUNDARY
 Inspect first:
-- approved DECISION.md/storage design
+- approved docs/project-records/DECISION.md/storage design
 - existing Phase 2 migrations
 - retention migration contract test
 - upload persistence boundary
@@ -1385,7 +1445,7 @@ Report only the failing request/test, first/root error, page/sample parameters, 
 ## Implementation Prompt
 
 ```text
-Read AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
+Read docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
 
 Implement task T011: Move Pagination and Consumers to Bounded Data Access.
 
@@ -1473,7 +1533,7 @@ Remove html2canvas/jsPDF export, retain an accessible print-first report flow, a
 
 ## Inspect First
 
-- `MODERNIZATION_WORKLOG.md` PDF product decision
+- `docs/project-records/MODERNIZATION_WORKLOG.md` PDF product decision
 - `README.md` Reports section
 - `components/ReportGenerator.tsx`
 - `components/ReportTemplate.tsx`
@@ -1528,7 +1588,7 @@ Report only the failing command or one screenshot/description of the first print
 ## Implementation Prompt
 
 ```text
-Read AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
+Read docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
 
 Implement task T012: Adopt Print-First Reports and Remove Raster PDF Dependencies.
 
@@ -1671,7 +1731,7 @@ Report only the first reproducible defect, viewport/dataset parameters, and mini
 ## Implementation Prompt
 
 ```text
-Read AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
+Read docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
 
 Implement task T013: Complete Bounded Performance, Accessibility, and Responsive UX.
 
@@ -1760,8 +1820,8 @@ Make setup, architecture, limits, security/retention, environment classification
 ## Inspect First
 
 - `README.md`
-- `MODERNIZATION_WORKLOG.md` current status and deferred risks
-- `DECISION.md`
+- `docs/project-records/MODERNIZATION_WORKLOG.md` current status and deferred risks
+- `docs/project-records/DECISION.md`
 - `supabase/PHASE_2_DEPLOYMENT.md` and the approved storage deployment guide
 - `.env.example`
 - `.github/workflows/ci.yml`
@@ -1770,11 +1830,11 @@ Make setup, architecture, limits, security/retention, environment classification
 ## Likely Files to Modify
 
 - `README.md`
-- `MODERNIZATION_WORKLOG.md`
-- `DECISION.md` only for genuine long-lived decisions
+- `docs/project-records/MODERNIZATION_WORKLOG.md`
+- `docs/project-records/DECISION.md` only for genuine long-lived decisions
 - deployment/recovery guides
 - `.env.example` only for names/classification, never values
-- `PROJECT_TASKS.md`
+- `docs/project-records/PROJECT_TASKS.md`
 
 ## Do Not Modify
 
@@ -1821,7 +1881,7 @@ Report only the failing command/gate and first/root error. Do not paste secrets,
 ## Implementation Prompt
 
 ```text
-Read AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
+Read docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md and follow the repository documentation.
 
 Implement task T014: Complete Release Documentation and Controlled Production Readiness.
 
@@ -1838,8 +1898,8 @@ Make release documentation accurate and record an evidence-backed launch or keep
 CONTEXT BOUNDARY
 Inspect first:
 - README.md
-- current/deferred sections of MODERNIZATION_WORKLOG.md
-- DECISION.md
+- current/deferred sections of docs/project-records/MODERNIZATION_WORKLOG.md
+- docs/project-records/DECISION.md
 - deployment/recovery guides
 - .env.example, CI workflow, package commands only
 Do not scan the repository.
@@ -1895,8 +1955,8 @@ Update project state only:
 - add concise validation evidence,
 - promote the next eligible task to READY,
 - re-evaluate its model, effort, validation tier, and executor,
-- update MODERNIZATION_WORKLOG.md,
-- update DECISION.md only for a genuine long-lived decision,
+- update docs/project-records/MODERNIZATION_WORKLOG.md,
+- update docs/project-records/DECISION.md only for a genuine long-lived decision,
 - suggest one commit message.
 
 Do not change application code.

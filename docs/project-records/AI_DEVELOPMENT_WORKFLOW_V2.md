@@ -1,6 +1,6 @@
 # AI Development Workflow
 
-Last updated: 2026-08-21
+Last updated: 2026-09-29
 
 ## Purpose
 
@@ -28,7 +28,7 @@ The objective is to minimize **wasted** tokens while keeping important code, fin
 
 The project-specific development queue lives in:
 
-`PROJECT_TASKS.md`
+`docs/project-records/PROJECT_TASKS.md`
 
 After bootstrap, this file should answer:
 
@@ -41,7 +41,10 @@ After bootstrap, this file should answer:
 - Should validation be run by Codex, the developer, or both?
 - What exact implementation prompt should I paste?
 
-The developer should normally open `PROJECT_TASKS.md`, find the first `READY` task, select the recommended Codex setting, and copy only that task's `Implementation Prompt`.
+The developer should normally open `docs/project-records/PROJECT_TASKS.md`, find the first `READY`
+task, select the recommended Codex setting, and copy only that task's
+`Implementation Prompt`. If none is `READY`, follow the empty-queue rule in
+Section 25.
 
 ---
 
@@ -50,16 +53,19 @@ The developer should normally open `PROJECT_TASKS.md`, find the first `READY` ta
 When available, use these sources in this order:
 
 1. `AGENTS.md`
-2. `REQUIREMENTS.md`
-3. `DECISION.md`
-4. `SESSION.md`
-5. `PROJECT_TASKS.md`
-6. `MENTORING.md`
-7. Relevant source code and tests
+2. `docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md` for workflow and routing rules
+3. `REQUIREMENTS.md`
+4. `docs/project-records/DECISION.md`
+5. `SESSION.md` when present
+6. `docs/project-records/PROJECT_TASKS.md`
+7. `MENTORING.md`
+8. Project history/operational evidence such as `docs/project-records/MODERNIZATION_WORKLOG.md`
+9. Relevant architecture, security, development, testing, and deployment docs
+10. Relevant source code and tests
 
 Do not repeatedly reconstruct project state from the whole repository.
 
-Do not reopen decisions already recorded in `DECISION.md` unless current evidence shows they are invalid.
+Do not reopen decisions already recorded in `docs/project-records/DECISION.md` unless current evidence shows they are invalid.
 
 ---
 
@@ -67,273 +73,141 @@ Do not reopen decisions already recorded in `DECISION.md` unless current evidenc
 
 ## Primary models
 
-Use the GPT-5.6 family as the normal routing system:
+Use the GPT-6 family for all newly created or re-routed work:
 
-- `GPT-5.6 Luna`
-- `GPT-5.6 Terra`
-- `GPT-5.6 Sol`
+- `GPT-6 Luna` for economical, predictable execution,
+- `GPT-6 Sol` as the balanced software-engineering default,
+- `GPT-6 Astra` only for genuinely difficult unresolved reasoning.
 
-Reasoning effort options used in this workflow:
+Every active/future task must name exact phase-specific model and effort
+combinations. Use `Low` or `Medium` normally; `High`, `Extra High`, and `Max`
+are exceptional and require a concrete justification.
 
-- `Light`
-- `Medium`
-- `High`
-- `Extra High`
-- `Max`
+Historical routing on `DONE` or `CANCELLED` tasks is an execution record. Do
+not rewrite it when the model policy changes.
 
-Every task must name an exact combination.
+## Availability fallback
 
-Example:
-
-```text
-Recommended Codex Setting: GPT-5.6 Terra · Medium
-```
-
-## Older models
-
-The developer may also see:
-
-- `GPT-5.5`
-- `GPT-5.4`
-- `GPT-5.4 mini`
-
-These are NOT automatically cheaper choices.
-
-Do not route to an older model merely because its version number is lower.
-
-Use an older model only when:
-
-- the preferred GPT-5.6 model is unavailable,
-- a known project-specific regression exists on GPT-5.6,
-- the developer is deliberately benchmarking models,
-- or the developer explicitly requests it.
-
-Preferred substitutions:
+Fallback is availability-based, not history-based:
 
 ```text
-GPT-5.4 mini → prefer GPT-5.6 Luna
-GPT-5.4      → prefer GPT-5.6 Terra
-GPT-5.5      → prefer GPT-5.6 Sol when frontier capability is required
+GPT-6 Luna unavailable → GPT-5.6 Luna
+GPT-6 Sol unavailable  → GPT-5.6 Sol
 ```
 
-Do not build a new long-term workflow around models that are being retired from the Codex product.
+Do not route new work to GPT-5.6 merely because completed tasks used it. There
+is no routine Astra fallback; if Astra is unavailable, continue with targeted
+Sol analysis or stop and record the unresolved escalation need.
 
 ---
 
 # 4. Model Roles
 
-## GPT-5.6 Luna
+## GPT-6 Luna
 
-Use for clear, bounded, predictable work.
+Use aggressively for clear, bounded, predictable work: localized changes,
+established CRUD patterns, straightforward UI/styling, tests, documentation,
+formatting, repetitive edits, simple transformations, and mechanical
+refactors. Prefer `GPT-6 Luna · Low` for highly mechanical work and
+`GPT-6 Luna · Medium` for ordinary scoped implementation.
 
-Typical tasks:
+Do not select Luna solely to save usage when correctness depends on unresolved
+architecture, security boundaries, financial or transactional invariants,
+migrations, concurrency, data integrity, or complex state transitions.
 
-- copy/text edits,
-- documentation cleanup,
-- formatting,
-- small CSS adjustments,
-- variable renaming,
-- simple tests for known behavior,
-- repetitive changes,
-- boilerplate following an existing pattern,
-- small configuration changes,
-- mechanical refactors with explicit instructions.
+## GPT-6 Sol
 
-Default combinations:
+Use as the primary engineering reasoning model and balanced default for task
+planning, decomposition, multi-file coordination, non-trivial features,
+business/domain logic, debugging, API/data-model coordination, stateful work,
+schema changes, migrations, authentication/authorization, and repository-level
+judgment.
 
-```text
-GPT-5.6 Luna · Light
-GPT-5.6 Luna · Medium
-```
+Prefer `GPT-6 Sol · Low` for clearly specified implementation that still needs
+strong coding judgment. Prefer `GPT-6 Sol · Medium` for architecture,
+meaningful cross-layer work, high-integrity logic, feature decomposition,
+security-sensitive work, migration reasoning, and difficult debugging.
 
-Avoid using Luna at High/Extra High/Max by default.
+## GPT-6 Astra
 
-If the task needs that much reasoning, reconsider whether it belongs on Terra or Sol.
+Treat Astra as an escalation model. Start with `GPT-6 Astra · Low` only for
+fundamental architecture, difficult system-wide failures, competing
+architectural constraints, security-critical redesign, subtle transactional or
+concurrency correctness, unresolved migration/data-integrity problems, or
+behavior that targeted Sol analysis cannot safely resolve.
 
----
-
-## GPT-5.6 Terra
-
-This is the default model for ordinary software development.
-
-Typical tasks:
-
-- normal feature implementation,
-- CRUD,
-- forms,
-- validation,
-- state management,
-- API/service integration,
-- ordinary database queries,
-- frontend/backend integration,
-- charts using existing data,
-- normal refactors,
-- moderate debugging,
-- multi-file work with clear requirements.
-
-Default combinations:
-
-```text
-GPT-5.6 Terra · Light
-GPT-5.6 Terra · Medium
-GPT-5.6 Terra · High
-```
-
-`GPT-5.6 Terra · Medium` should be the normal starting point for everyday coding.
-
----
-
-## GPT-5.6 Sol
-
-Use for difficult, ambiguous, high-risk, or high-leverage reasoning.
-
-Typical tasks:
-
-- unclear root-cause debugging,
-- architecture planning,
-- schema/data-model redesign,
-- authentication/authorization architecture,
-- security-sensitive changes,
-- financial invariants,
-- data-integrity failures,
-- migrations,
-- complex SQL/data modeling,
-- major refactors,
-- repository-wide planning,
-- conflicting requirements.
-
-Default combinations:
-
-```text
-GPT-5.6 Sol · Medium
-GPT-5.6 Sol · High
-GPT-5.6 Sol · Extra High
-GPT-5.6 Sol · Max
-```
-
-Do not use Sol for routine implementation when Luna or Terra is sufficient.
+Use `GPT-6 Astra · Medium` only if Low is insufficient. Use High or above only
+exceptionally. A task's size, file count, or importance is not by itself a
+reason to use Astra.
 
 ---
 
 # 5. Recommended Model + Effort Matrix
 
-| Task type | Recommended setting |
-|---|---|
-| Copy, rename, formatting, tiny docs | `GPT-5.6 Luna · Light` |
-| Small CSS/local UI adjustment | `GPT-5.6 Luna · Light` |
-| Straightforward test for known behavior | `GPT-5.6 Luna · Light` |
-| Mechanical multi-file edit using an explicit pattern | `GPT-5.6 Luna · Medium` |
-| Simple implementation following an existing pattern | `GPT-5.6 Luna · Medium` |
-| Narrow ordinary code change | `GPT-5.6 Terra · Light` |
-| Normal feature implementation | `GPT-5.6 Terra · Medium` |
-| CRUD/form/API/service integration | `GPT-5.6 Terra · Medium` |
-| Dashboard/chart from existing data | `GPT-5.6 Terra · Medium` |
-| Ordinary SQL/data transformation | `GPT-5.6 Terra · Medium` |
-| Moderate debugging | `GPT-5.6 Terra · High` |
-| Cross-layer feature with clear architecture | `GPT-5.6 Terra · High` |
-| Scoped but unfamiliar/high-value implementation | `GPT-5.6 Sol · Medium` |
-| Project roadmap / architecture planning | `GPT-5.6 Sol · High` |
-| Difficult ambiguous bug | `GPT-5.6 Sol · High` |
-| Financial invariant / reconciliation logic | `GPT-5.6 Sol · High` |
-| Authentication/security/data-integrity design | `GPT-5.6 Sol · High` |
-| Major architecture/refactor/migration | `GPT-5.6 Sol · Extra High` |
-| Very difficult multi-layer investigation | `GPT-5.6 Sol · Extra High` |
-| Hardest unresolved problem after strong attempts | `GPT-5.6 Sol · Max` |
+| Task type | Reasoning / planning | Implementation | Validation / cleanup |
+|---|---|---|---|
+| Docs, formatting, tiny UI/style, known-behavior tests | `GPT-6 Luna · Low` | `GPT-6 Luna · Low` | `GPT-6 Luna · Low` |
+| Mechanical multi-file edit or established pattern | `GPT-6 Luna · Low` | `GPT-6 Luna · Medium` | `GPT-6 Luna · Low` |
+| Normal scoped feature with settled architecture | `GPT-6 Sol · Low` | `GPT-6 Luna · Medium` | `GPT-6 Luna · Low` |
+| Moderately cross-layer implementation | `GPT-6 Sol · Medium` | `GPT-6 Sol · Low` | `GPT-6 Luna · Low` |
+| Stateful/domain/API/data-model coordination | `GPT-6 Sol · Medium` | `GPT-6 Sol · Low/Medium` | `GPT-6 Sol · Low` |
+| Financial, auth, security, migration, transactional, or data-integrity work | `GPT-6 Sol · Medium` | `GPT-6 Sol · Medium` | `GPT-6 Sol · Low/Medium` |
+| Architecture or difficult diagnosis | `GPT-6 Sol · Medium` | Route after the decision | `GPT-6 Sol · Low` |
+| Unresolved architecture/security/transactional conflict after targeted Sol work | `GPT-6 Astra · Low`, then Medium if justified | De-escalate to Sol or Luna | `GPT-6 Sol · Low` |
+
+When model switching is impractical, use `GPT-6 Sol · Low` or `Medium` as the
+one-model fallback. Do not use Astra merely to avoid switching, and do not use
+Luna as the fallback for high-integrity domain logic.
 
 ---
 
 # 6. Effort Routing
 
-## Light
+## Low
 
-Use when:
-
-- desired implementation is obvious,
-- task is tightly scoped,
-- little planning is necessary,
-- validation is simple,
-- risk is low.
+Default for clearly specified implementation, routine debugging, predictable
+edits, tests, documentation, and straightforward agent execution.
 
 ## Medium
 
-Use for normal implementation.
-
-This should be the most common effort level.
+Use for normal architectural reasoning, meaningful cross-layer/stateful/domain
+work, difficult debugging, feature decomposition, migrations, security, and
+important planning.
 
 ## High
 
-Use when:
+Use only when Medium has proven insufficient or the reasoning is unusually
+difficult. Record why.
 
-- multiple files/layers must be coordinated,
-- debugging is moderately difficult,
-- stronger checking is needed,
-- meaningful tradeoffs exist.
+## Extra High / Max
 
-## Extra High
-
-Use only for genuinely hard work:
-
-- major architecture,
-- difficult migrations,
-- hard root-cause investigation,
-- high-risk refactors,
-- several competing constraints.
-
-## Max
-
-Reserve for rare unresolved problems.
-
-Do not use Max simply because the task is important or large.
+Exceptional only. Never assign automatically because a task is large.
 
 ---
 
 # 7. Escalation and De-escalation
 
-Do not jump to the strongest setting.
-
-Escalate when evidence justifies it:
-
-- root cause remains unknown,
-- two targeted attempts fail,
-- validation failures remain unexplained,
-- the task crosses more layers than expected,
-- architecture decisions become necessary,
-- security/data-integrity risk appears,
-- requirements materially conflict.
+Start with Sol for difficult work; escalate only on evidence such as materially
+conflicting requirements, an unresolved security/data-integrity invariant,
+unknown behavior after targeted investigation, or repeated targeted failures
+with different plausible causes.
 
 If escalation requires manually changing the Codex model:
 
 > **STOP and tell the developer the exact model + effort to switch to. Do not continue until the developer switches it.**
 
-Example:
+Separate reasoning from execution whenever that avoids carrying expensive
+reasoning through routine work:
 
 ```text
-Current:
-GPT-5.6 Terra · Medium
-
-Escalation trigger:
-The bug spans frontend, API, persistence, and an unclear financial invariant.
-
-Stop and request:
-GPT-5.6 Sol · High
+Reasoning / planning: GPT-6 Sol · Medium
+Escalation: GPT-6 Astra · Low, only if the documented constraints cannot be reconciled
+Implementation after decision: GPT-6 Luna · Medium or GPT-6 Sol · Low
+Validation / cleanup: GPT-6 Luna · Low
 ```
 
-## De-escalate after difficult reasoning
-
-Example:
-
-```text
-T021 Diagnose incorrect totals
-GPT-5.6 Sol · High
-
-T022 Implement confirmed fix
-GPT-5.6 Terra · Medium
-
-T023 Add regression test
-GPT-5.6 Luna · Light
-```
-
-Do not keep using Sol just because the investigation required Sol.
+After Astra resolves a decision, de-escalate implementation, testing, cleanup,
+and documentation to Sol or Luna whenever practical.
 
 ---
 
@@ -718,7 +592,7 @@ Token savings are useful only when they do not create substantially more human e
 
 Normal implementation should read only:
 
-1. `PROJECT_TASKS.md` Quick Queue,
+1. `docs/project-records/PROJECT_TASKS.md` Quick Queue,
 2. the current `READY` task,
 3. dependency details only when needed,
 4. files listed under `Inspect First`,
@@ -727,7 +601,7 @@ Normal implementation should read only:
 Do NOT reread the whole:
 
 - repository,
-- `PROJECT_TASKS.md`,
+- `docs/project-records/PROJECT_TASKS.md`,
 - handoff,
 - README,
 - decisions log,
@@ -755,7 +629,7 @@ For every task:
 - use search to locate the symbol before reading surrounding code,
 - stop inspecting once enough context exists to implement safely.
 
-If the developer already knows the relevant files, record them in `PROJECT_TASKS.md` before the implementation session.
+If the developer already knows the relevant files, record them in `docs/project-records/PROJECT_TASKS.md` before the implementation session.
 
 ---
 
@@ -796,7 +670,8 @@ During implementation:
 - do not implement future tasks,
 - do not “clean up” unrelated issues discovered along the way.
 
-Unrelated discoveries become future tasks.
+Record unrelated discoveries as candidates. Create a future task only when the
+evidence and approval rules in Section 25 are satisfied.
 
 ---
 
@@ -901,61 +776,63 @@ A large high-reasoning task should be decomposed when possible:
 
 ```text
 T030 Diagnose financial mismatch
-GPT-5.6 Sol · High
+GPT-6 Sol · Medium (escalate to GPT-6 Astra · Low only if unresolved)
 
 T031 Implement confirmed fix
-GPT-5.6 Terra · Medium
+GPT-6 Sol · Low
 
 T032 Add regression test
-GPT-5.6 Luna · Light
+GPT-6 Luna · Low
 ```
 
 ---
 
-# 20. Required `PROJECT_TASKS.md` Quick Queue
+# 20. Required `docs/project-records/PROJECT_TASKS.md` Quick Queue
 
 Use:
 
-```md
+````md
 | ID | Status | Model | Effort | Validation | Executor | Task | Depends On |
 |---|---|---|---|---|---|---|---|
-| T001 | DONE | GPT-5.6 Terra | Medium | V2 | HYBRID | ... | — |
-| T002 | READY | GPT-5.6 Luna | Light | V1 | DEVELOPER | ... | T001 |
-| T003 | PLANNED | GPT-5.6 Sol | High | V3 | HYBRID | ... | T002 |
+| T001 | DONE | GPT-5.6 Terra | Medium | V2 | HYBRID | historical task | — |
+| T002 | READY | GPT-6 Luna | Medium | V1 | DEVELOPER | predictable implementation | T001 |
+| T003 | PLANNED | GPT-6 Sol | Medium | V3 | HYBRID | high-integrity feature | T002 |
 ```
+
+For new tasks, `Model` and `Effort` summarize the implementation route, or the
+reasoning route when the task is decision-only. The task body remains
+authoritative for phase-specific routing. Use `READY`, `PLANNED`, `BLOCKED`,
+and `DEFERRED` as defined by the project ledger; normally only one task is
+`READY`.
 
 ---
 
 # 21. Required Task Structure
 
-Every task in `PROJECT_TASKS.md` must contain:
+Every task in `docs/project-records/PROJECT_TASKS.md` must contain:
 
 ```md
 # Txxx — Task Name
 
 Status: `READY`
 
-## Recommended Codex Setting
+## Why This Task Exists
 
-**Model:** `GPT-5.6 Terra`
-
-**Effort:** `Medium`
-
-**Use:** `GPT-5.6 Terra · Medium`
-
-## Why This Setting
-
-<brief reason>
-
-## Escalation Path
-
-<exact trigger and exact model/effort>
+<explicit owner request, verified defect, approved finding/change, or other recognized evidence>
 
 ## Objective
 
 <one outcome>
 
 ## Dependencies
+
+- ...
+
+## Relevant Requirements
+
+- ...
+
+## Relevant Decisions / ADRs
 
 - ...
 
@@ -974,6 +851,32 @@ Status: `READY`
 ## Acceptance Criteria
 
 - [ ] ...
+
+## Recommended Codex Routing
+
+**Reasoning / Planning:** `GPT-6 Sol · Low`
+
+Why: <one concise sentence>
+
+**Implementation:** `GPT-6 Luna · Medium`
+
+Why: <one concise sentence>
+
+**Validation / Cleanup:** `GPT-6 Luna · Low`
+
+**Escalate implementation to:** `GPT-6 Sol · Medium`
+
+ONLY IF:
+
+- <concrete condition>
+
+**Escalate reasoning to:** `GPT-6 Astra · Low`
+
+ONLY IF:
+
+- <concrete condition after targeted Sol analysis>
+
+**Routing confidence:** `HIGH | MEDIUM | LOW`
 
 ## Validation Strategy
 
@@ -1001,7 +904,7 @@ If validation fails, report only the failing command and first/root error.
 ## Completion Notes
 
 Pending.
-```
+````
 
 ---
 
@@ -1010,23 +913,20 @@ Pending.
 Every task's `Implementation Prompt` should use this structure:
 
 ```text
-Read AI_DEVELOPMENT_WORKFLOW.md and follow the repository documentation.
+Read docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md and obey the repository source-of-truth hierarchy.
 
 Implement task <TASK_ID>: <TASK_NAME>.
 
 CODEX ROUTING
 
-Use:
-<exact model> · <exact effort>
-
-Why:
-<brief reason>
-
-Escalate to:
-<exact model + effort>
-
-ONLY IF:
-- <specific condition>
+Reasoning / Planning: <exact model> · <exact effort>
+Implementation: <exact model> · <exact effort>
+Validation / Cleanup: <exact model> · <exact effort>
+Escalate implementation to: <exact model> · <exact effort>
+ONLY IF: <specific condition>
+Escalate reasoning to: <exact model> · <exact effort>
+ONLY IF: <specific condition after targeted analysis>
+Routing confidence: <HIGH | MEDIUM | LOW>
 
 If escalation is required, STOP and tell me which Codex setting to select.
 Do not continue until I switch the model.
@@ -1046,6 +946,7 @@ Expand context only when current evidence requires it.
 
 REQUIREMENTS
 
+- Follow the task's Relevant Requirements and Relevant Decisions / ADRs.
 - ...
 
 DO NOT MODIFY
@@ -1103,8 +1004,8 @@ If validation is already confirmed:
 - mark this task DONE,
 - promote the next unblocked task to READY,
 - re-evaluate its exact model, effort, validation tier, and executor,
-- update SESSION.md,
-- update DECISION.md only for a genuine long-lived decision.
+- update SESSION.md only when it exists or repository convention requires it,
+- update docs/project-records/DECISION.md only for a genuine long-lived decision.
 
 If developer validation is still pending:
 - do NOT mark the task DONE,
@@ -1112,6 +1013,7 @@ If developer validation is still pending:
 - wait for validation confirmation.
 
 Do not implement the next task.
+Do not create a Git commit unless repository instructions explicitly permit it.
 ```
 
 ---
@@ -1128,7 +1030,7 @@ Update project state only:
 - add concise validation evidence,
 - promote the next eligible task to READY,
 - re-evaluate its model, effort, validation tier, and executor,
-- update SESSION.md,
+- update SESSION.md only when it exists or repository convention requires it,
 - suggest one commit message.
 
 Do not change application code.
@@ -1161,13 +1063,55 @@ Follow the task's escalation rule if the root cause exceeds the current model.
 
 ---
 
-# 25. Bootstrap Rule
+# 25. Empty Queue and Future-Work Intake
 
-If `PROJECT_TASKS.md` does not exist, create it before normal development.
+If no task is `READY` and the documented roadmap is complete, do not invent
+work. Report that planned work is complete and stop unless there is evidence for
+a new task.
+
+When the owner requests a new feature, bug fix, redesign, migration,
+enhancement, or optimization that no existing task covers, do not bypass the
+task system. Before implementation:
+
+1. Re-scan the relevant Markdown workflow instructions and current project
+   state. Read `SESSION.md` only when present.
+2. Read relevant requirements and decisions/ADRs. Use documentation first;
+   inspect targeted code only when the task contract cannot be made safe
+   without it.
+3. Identify the latest task ID and continue the sequence without reusing or
+   rewriting historical IDs.
+4. Create one cohesive, independently testable task, or decompose meaningful
+   phases such as decision, migration foundation, domain/backend, frontend,
+   cutover, and acceptance. Do not create artificial microtasks.
+5. Set the first executable task to `READY`, dependent work to `PLANNED`,
+   externally constrained work to `BLOCKED`, and intentionally postponed work
+   to `DEFERRED`.
+6. Record requirements, decisions, dependencies, risks, boundaries, acceptance,
+   validation, phase-specific routing, escalation conditions, routing
+   confidence, and an implementation prompt before implementation begins.
+7. Update only canonical state documents required by repository convention.
+   Change `docs/project-records/DECISION.md` only for a genuine long-lived decision and requirements
+   documentation only when an approved product requirement changes.
+
+A task must originate from evidence: an explicit owner request, verified
+defect, approved audit finding, approved architectural change, or another
+repository-recognized reason. A completed queue is not permission to bypass
+planning, and an empty queue is not a reason to manufacture work.
+
+For a feature with a genuine unresolved architecture choice, prefer a decision
+task routed to `GPT-6 Sol · Medium` with `GPT-6 Astra · Low` escalation, followed
+by a separately routed implementation task. Keep them together when separation
+would add process without meaningful clarity or safety.
+
+---
+
+# 26. Bootstrap Rule
+
+If `docs/project-records/PROJECT_TASKS.md` does not exist, create it before normal development.
 
 Recommended starting setting:
 
-> `GPT-5.6 Sol · High`
+> `GPT-6 Sol · Medium`
 
 The bootstrap is a high-leverage planning task. Spending more reasoning once can save repeated planning later.
 
@@ -1186,21 +1130,21 @@ During bootstrap:
 11. assign validation executor,
 12. define escalation,
 13. create exact implementation prompt,
-14. save `PROJECT_TASKS.md`.
+14. save `docs/project-records/PROJECT_TASKS.md`.
 
 Do not implement application code during bootstrap.
 
 ---
 
-# 26. Bootstrap Prompt
+# 27. Bootstrap Prompt
 
 ```text
-Read AI_DEVELOPMENT_WORKFLOW.md and follow it exactly.
+Read docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md and follow it exactly.
 
 This is a ONE-TIME project planning/bootstrap task.
 
 Use:
-GPT-5.6 Sol · High
+GPT-6 Sol · Medium
 
 Do not implement application code.
 
@@ -1208,13 +1152,13 @@ Read available project documentation in this order:
 
 AGENTS.md
 REQUIREMENTS.md
-DECISION.md
+docs/project-records/DECISION.md
 SESSION.md
 MENTORING.md
 
 Then inspect the repository structure and only representative source files necessary to understand the current implementation.
 
-Create or rebuild PROJECT_TASKS.md.
+Create or rebuild docs/project-records/PROJECT_TASKS.md.
 
 For every task determine:
 
@@ -1241,17 +1185,16 @@ For every task determine:
 
 MODEL POLICY
 
-Prefer the GPT-5.6 family.
+Prefer the GPT-6 family.
 
 Use:
-- GPT-5.6 Luna Light/Medium for clear mechanical work.
-- GPT-5.6 Terra Medium for normal development.
-- GPT-5.6 Terra High for moderate debugging/cross-layer work.
-- GPT-5.6 Sol Medium/High for unfamiliar, ambiguous, financial, security, architecture, or difficult debugging work.
-- GPT-5.6 Sol Extra High/Max only for genuinely hard unresolved problems.
+- GPT-6 Luna Low/Medium for predictable implementation, tests, docs, styling, and mechanical work.
+- GPT-6 Sol Low for scoped work needing stronger engineering judgment.
+- GPT-6 Sol Medium for planning, cross-layer/stateful/high-integrity work, security, migrations, and difficult debugging.
+- GPT-6 Astra Low only after targeted Sol analysis cannot safely resolve a genuine architectural, security, transactional, concurrency, or data-integrity problem.
+- GPT-6 Astra Medium only when Astra Low is insufficient; High or above is exceptional.
 
-Do not choose GPT-5.5, GPT-5.4, or GPT-5.4 mini merely because the version number is lower.
-Use older models only when GPT-5.6 is unavailable, a known regression exists, or I explicitly request a benchmark.
+Use GPT-5.6 Luna or Sol only as the documented availability fallback.
 
 VALIDATION POLICY
 
@@ -1291,7 +1234,7 @@ TOKEN POLICY
 
 Minimize:
 - repository-wide scans,
-- rereading the entire PROJECT_TASKS.md,
+- rereading the entire docs/project-records/PROJECT_TASKS.md,
 - huge logs,
 - entire datasets,
 - full-file rewrites,
@@ -1301,7 +1244,7 @@ Minimize:
 
 Normally only one required task should be READY.
 
-PROJECT_TASKS.md Quick Queue must include:
+docs/project-records/PROJECT_TASKS.md Quick Queue must include:
 
 | ID | Status | Model | Effort | Validation | Executor | Task | Depends On |
 
@@ -1311,17 +1254,17 @@ At the end report only:
 - exact model + effort,
 - validation tier + executor,
 - one-sentence routing reason,
-- confirmation PROJECT_TASKS.md was created.
+- confirmation docs/project-records/PROJECT_TASKS.md was created.
 
 Do not implement the READY task yet.
 ```
 
 ---
 
-# 27. Normal Daily Workflow
+# 28. Normal Daily Workflow
 
 ```text
-Open PROJECT_TASKS.md
+Open docs/project-records/PROJECT_TASKS.md
         ↓
 Find READY
         ↓
@@ -1350,7 +1293,7 @@ Repeat
 
 ---
 
-# 28. Practical Token-Saving Priority
+# 29. Practical Token-Saving Priority
 
 Optimize in this order:
 
@@ -1361,7 +1304,7 @@ Optimize in this order:
 3. Keep tasks small and explicit.
 4. Run deterministic green-path validation manually.
 5. Give Codex only root errors, not full logs.
-6. Use Luna/Terra instead of Sol when capability permits.
+6. Use Luna instead of Sol, and Sol instead of Astra, when capability permits.
 7. De-escalate after hard reasoning is complete.
 8. Avoid agent-driven browser acceptance unless necessary.
 
@@ -1384,7 +1327,7 @@ Do not spend excessive human effort chasing tiny token savings.
 
 ---
 
-# 29. What NOT to Sacrifice for Token Savings
+# 30. What NOT to Sacrifice for Token Savings
 
 Do not skip meaningful validation for:
 
@@ -1414,7 +1357,7 @@ That means:
 
 ---
 
-# 30. Core Philosophy
+# 31. Core Philosophy
 
 The workflow is:
 

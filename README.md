@@ -1,78 +1,38 @@
 # EDA Platform
 
-A bounded, anonymous CSV exploratory-data-analysis demo. It computes summary
-statistics, data-quality signals, correlations, and charts without sending
-dataset content to an AI provider.
+EDA Platform is a small-file CSV exploratory analysis app. Upload a dataset to inspect its statistics, missing values, correlations, and charts without sending dataset content to an AI provider.
 
-Each visitor receives a temporary Supabase anonymous identity after completing
-Cloudflare Turnstile. Data is owner-isolated by Row Level Security, expires
-after 24 hours, and is cleaned up by a scheduled database job.
+## What it does
 
-## Stack
+- Analyzes CSV files up to 2 MiB and 10,000 rows, with validation before storage.
+- Shows summary statistics, data-quality signals, visualizations, and a browser-printable report.
+- Keeps datasets within an anonymous Supabase session using owner-scoped Row Level Security. Access expires after 24 hours; scheduled cleanup removes the stored data later.
 
-- Next.js 16.2, React 19.2, TypeScript, and Tailwind CSS 3.4
-- Supabase Auth and PostgreSQL
-- Cloudflare Turnstile
-- Papa Parse, Recharts, and browser print output
-- Node.js 24.x and npm 11.x
-
-Use npm only. The supported versions are declared in [`.nvmrc`](.nvmrc) and
-[`package.json`](package.json).
+Uploads require Cloudflare Turnstile and are disabled unless the server's `UPLOADS_ENABLED` value is exactly `true`. See [Setup](docs/SETUP.md) for the required provider configuration and safe local upload testing.
 
 ## Quick start
+
+Requires Node.js 24.x, npm 11.x, and Supabase configuration. From the repository root:
 
 ```powershell
 npm ci
 Copy-Item .env.example .env.local
+# Set the Supabase values in .env.local
 npm run dev
 ```
 
-Set the required values in `.env.local`, then open <http://localhost:3000>.
-The complete instructions, including safe local upload testing, are in
-[Setup](docs/SETUP.md).
+Open <http://localhost:3000>. The sample environment leaves uploads disabled; [Setup](docs/SETUP.md) explains how to enable them in a development environment.
 
-## Commands
+## Built with
 
-```powershell
-npm run dev
-npm run lint
-npm run typecheck
-npm test
-npm run build
-```
-
-GitHub Actions runs a clean install followed by linting, type-checking, tests,
-and the production build on pull requests and `master`.
+Next.js 16, React 19, TypeScript, Tailwind CSS, Supabase Auth/PostgreSQL, Cloudflare Turnstile, Papa Parse, and Recharts.
 
 ## Documentation
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [Setup](docs/SETUP.md)
-- [Development workflow](docs/DEVELOPMENT.md)
-- [Testing](docs/TESTING.md)
-- [Deployment](docs/DEPLOYMENT.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
-- [Security notes](docs/SECURITY_NOTES.md)
-- [Project structure](docs/PROJECT_STRUCTURE.md)
-- [Contributing](.github/CONTRIBUTING.md)
-- [Security reporting](.github/SECURITY.md)
-
-The root also retains project records that are part of the active development
-workflow: [`PROJECT_TASKS.md`](PROJECT_TASKS.md),
-[`MODERNIZATION_WORKLOG.md`](MODERNIZATION_WORKLOG.md),
-[`DECISION.md`](DECISION.md), and
-[`AI_DEVELOPMENT_WORKFLOW_V2.md`](AI_DEVELOPMENT_WORKFLOW_V2.md).
-
-## Release safety
-
-The checked-in environment sample keeps `UPLOADS_ENABLED=false`; the route only
-accepts uploads when the deployed value is exactly `true`. Confirm the actual
-Vercel environment scope and the cloud checklist before changing that value.
-Migrations and controlled cloud checks are documented in
-[`supabase/PHASE_2_DEPLOYMENT.md`](supabase/PHASE_2_DEPLOYMENT.md) and
-[`supabase/ROW_STORAGE_DEPLOYMENT.md`](supabase/ROW_STORAGE_DEPLOYMENT.md).
+- [Setup](docs/SETUP.md) · [Architecture](docs/ARCHITECTURE.md) · [Development and quality checks](docs/DEVELOPMENT.md)
+- [Deployment](docs/DEPLOYMENT.md) · [Security notes](docs/SECURITY_NOTES.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Testing details](docs/TESTING.md) · [Project structure and records](docs/PROJECT_STRUCTURE.md) · [Contributing](.github/CONTRIBUTING.md) · [Security reporting](.github/SECURITY.md)
 
 ## License
 
-No license file is currently included. Do not assume permission to reuse or
-redistribute the project until the owner adds one.
+No license file is included. Reuse and redistribution require permission from the owner.

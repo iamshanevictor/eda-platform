@@ -49,7 +49,7 @@ npm run build
 - **New data access:** validate identifiers, use the appropriate Supabase helper,
   and rely on RLS for visitor reads/deletes. Do not introduce direct browser
   writes.
-- **Analysis changes:** update unit tests and [`DECISION.md`](../DECISION.md)
+- **Analysis changes:** update unit tests and [`DECISION.md`](project-records/DECISION.md)
   when statistical semantics change.
 
 See [Contributing](../.github/CONTRIBUTING.md) for pull-request expectations.

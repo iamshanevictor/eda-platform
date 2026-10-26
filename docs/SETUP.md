@@ -13,7 +13,7 @@ Next.js serves the frontend, route handlers, and server actions.
 ## Install and configure
 
 ```powershell
-git clone <repository-url>
+git clone https://github.com/iamshanevictor/eda-platform.git
 cd eda-platform
 npm ci
 Copy-Item .env.example .env.local

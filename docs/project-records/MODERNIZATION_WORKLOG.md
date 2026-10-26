@@ -1,12 +1,12 @@
 # EDA Platform Modernization Worklog
 
-Last updated: 2026-08-24 (Asia/Manila)
+Last updated: 2026-09-29 (Asia/Manila)
 
 ## Purpose
 
 This file is the persistent execution log for the EDA Platform modernization. It records product decisions, phase scope, verification results, completed commits, intentional behavior changes, deferred work, and the next approved step.
 
-`PROJECT_TASKS.md` is the Workflow V2 execution queue. This worklog preserves the detailed modernization history and operational evidence behind that queue.
+`docs/project-records/PROJECT_TASKS.md` is the Workflow V2 execution queue. This worklog preserves the detailed modernization history and operational evidence behind that queue.
 
 ## Working rules
 
@@ -25,10 +25,10 @@ This file is the persistent execution log for the EDA Platform modernization. It
 | Item | Status |
 |---|---|
 | Repository audit | Complete on 2026-08-03 |
-| Application changes | Phase 2 security/privacy implementation is merged; preview validation and temporary-exposure cleanup are complete; production remains disabled |
-| Current execution phase | T005 — audit and safely modernize non-framework dependencies |
-| Phase 0 preflight evidence | Superseded by the applied Phase 2 migration and recorded cloud checks; remaining release-only environment checks are deferred to T014 |
-| Next proposed phase | Implement T005 with `GPT-5.6 Terra · Medium`, then run developer-owned V2 validation |
+| Application changes | T005–T014 are complete; production remains disabled pending the documented manual/cloud launch gates and explicit developer approval |
+| Current execution phase | Roadmap complete; no task is `READY` |
+| Phase 0 preflight evidence | Superseded by the applied Phase 2 migration and recorded cloud checks; remaining release-only environment checks are preserved by T014 as launch blockers |
+| Next proposed phase | None. Create T015 or later only from an explicit owner request or other repository-recognized evidence, using the GPT-6 routing policy in `docs/project-records/AI_DEVELOPMENT_WORKFLOW_V2.md` |
 | Approval to implement Phase 0 | Approved and implemented on 2026-08-04 |
 | Approval to implement Phase 1 | Approved and implemented on 2026-08-04 |
 | Approval to implement Phase 2 locally | Approved and closed on 2026-08-24 under the keep-production-disabled path |
